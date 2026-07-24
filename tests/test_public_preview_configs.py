@@ -8,6 +8,7 @@ from scripts.prepare_tiny_corpus import prepare_corpus
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_DIR = REPOSITORY_ROOT / "configs"
+QUALITY_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "quality.yml"
 REMOVED_TRAINING_DIAGNOSTIC_FIELDS = {
     "real_packing_audit_only",
     "strict_mdlm_corruption_audit_only",
@@ -33,6 +34,14 @@ REMOVED_TRAINING_DIAGNOSTIC_FIELDS = {
 def test_public_defaults_do_not_assume_a_private_filesystem():
     assert DataConfig().tokenizer_path == "tokenizers/climbmix-32k"
     assert EvalConfig().judge_model_id == "Qwen/Qwen3-0.6B-Base"
+
+
+def test_quality_workflow_uses_import_safe_tests_and_installs_wheel_dependencies():
+    workflow = QUALITY_WORKFLOW.read_text(encoding="utf-8")
+
+    assert "run: python -m pytest -q" in workflow
+    assert "python -m pip install dist/*.whl" in workflow
+    assert "pip install --no-deps" not in workflow
 
 
 def test_load_config_expands_environment_variables_recursively(tmp_path, monkeypatch):

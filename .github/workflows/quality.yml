@@ -52,7 +52,7 @@ jobs:
         run: ruff format --check .
 
       - name: Test
-        run: pytest -q
+        run: python -m pytest -q
 
       - name: Verify installed command
         run: nanodllm-pretrain --help
@@ -87,6 +87,12 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+
+      - name: Install CPU PyTorch
+        run: >-
+          python -m pip install
+          --index-url https://download.pytorch.org/whl/cpu
+          "torch==2.7.1"
 
       - name: Install build validators
         run: python -m pip install --upgrade build twine
@@ -195,7 +201,7 @@ jobs:
 
       - name: Verify wheel contents and entry point
         run: |
-          python -m pip install --no-deps --force-reinstall dist/*.whl
+          python -m pip install dist/*.whl
           python -c "from importlib.metadata import distribution; assert any(ep.name == 'nanodllm-pretrain' and ep.value == 'nanodllm.cli:main' for ep in distribution('nano-dllm').entry_points)"
 
       - name: Verify wheel outside the source tree
