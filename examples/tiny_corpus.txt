@@ -1,0 +1,32 @@
+Masked diffusion reconstructs a sequence by repeatedly replacing uncertain mask tokens.
+A bidirectional transformer can use evidence from both the left and the right context.
+The quick brown fox jumps over the lazy dog beside a quiet river.
+Reproducible experiments record the configuration, seed, software version, and data identity.
+Validation data should remain separate from the examples used to update model parameters.
+An optimizer follows gradients while a learning-rate schedule controls the step size.
+Small smoke tests catch packaging and data-pipeline failures before an expensive launch.
+Parquet row groups allow a large text collection to be streamed without loading it all at once.
+Tokenizers map ordinary text to integers and reserve explicit identifiers for control symbols.
+The mask token marks positions whose clean values the network is asked to predict.
+Sampling starts from uncertainty and commits tokens over a sequence of denoising steps.
+Evaluation separates reconstruction measurements from open-ended generation diagnostics.
+Researchers compare matched token budgets and report uncertainty around measured differences.
+Checkpoint files contain model state, optimizer state, and enough metadata to resume a run.
+Sequence packing combines short documents while retaining an end-of-document marker.
+Deterministic shuffling makes a data order reproducible from a documented random seed.
+Attention heads exchange information between token positions in a learned representation.
+Rotary position embeddings encode relative offsets without a learned position table.
+The feed-forward network transforms each position after information has been mixed by attention.
+Gradient clipping limits unusually large updates during the early phase of training.
+Warmup gradually increases the learning rate before the main optimization schedule.
+A final warmdown can reduce the learning rate near the end of a fixed training budget.
+Structured metrics make it easier to compare runs and diagnose numerical instability.
+An architecture fingerprint detects accidental changes to model geometry or initialization.
+Byte tokenization provides a compact dependency-free path for end-to-end installation checks.
+A learned byte-pair tokenizer can shorten common strings while retaining complete byte coverage.
+Unicode text includes scripts, combining marks, symbols, and emoji such as 海, é, and 🌍.
+Code examples contain punctuation, indentation, names, and repeated structural patterns.
+Mathematical prose mixes natural language with variables, operators, and numbered equations.
+Scientific claims are strongest when the evidence and comparison procedure are independently repeatable.
+Public recipes should expose hardware-sensitive settings instead of hiding machine assumptions.
+This tiny corpus is a fixture for testing the trainer and is not intended for meaningful modeling results.

@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nano-dllm"
+version = "0.1.0"
+description = "Research code for training masked discrete diffusion language models"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+authors = [
+    { name = "nano-dllm contributors" },
+]
+keywords = [
+    "diffusion language models",
+    "language modeling",
+    "machine learning",
+    "masked diffusion",
+    "pytorch",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy>=1.26",
+    "pyarrow>=21.0.0",
+    "tensorboard>=2.18.0",
+    "tokenizers>=0.21.0",
+    "torch>=2.7.1",
+    "transformers>=4.51.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2.2",
+    "pytest>=8.0.0",
+    "ruff>=0.15.0",
+    "twine>=6.1.0",
+]
+
+[project.scripts]
+nanodllm-pretrain = "nanodllm.cli:main"
+
+[tool.setuptools]
+packages = ["nanodllm"]
+py-modules = ["pretrain"]
+include-package-data = false
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+src = ["nanodllm"]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "SIM",
+]
+ignore = [
+    "E501",
+]

@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use nano-dllm in research, please cite the software and the exact revision you used."
+title: "nano-dllm"
+type: software
+version: 0.1.0
+authors:
+  - name: "nano-dllm contributors"
+abstract: >-
+  Research code for training, evaluating, sampling from, and reproducing
+  experiments with masked discrete diffusion language models.
+keywords:
+  - "diffusion language models"
+  - "language modeling"
+  - "masked diffusion"
+  - "machine learning"
+  - "PyTorch"
+license: MIT

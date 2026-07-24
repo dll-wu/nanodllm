@@ -1,0 +1,45 @@
+# Python bytecode and environments
+__pycache__/
+*.py[cod]
+*.egg-info/
+.python-version
+.venv/
+venv/
+.direnv/
+.env
+.env.*
+!.env.example
+
+# Test, lint, and coverage caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.ipynb_checkpoints/
+
+# Package build outputs
+build/
+dist/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Local experiment artifacts
+runs/
+.cluster/
+/results/
+/reports/
+/data/
+checkpoints/
+wandb/
+*.pt
+*.pth
+*.ckpt
+events.out.tfevents.*
+*.tmp
