@@ -42,6 +42,8 @@ def test_quality_workflow_uses_import_safe_tests_and_installs_wheel_dependencies
     assert "run: python -m pytest -q" in workflow
     assert "python -m pip install dist/*.whl" in workflow
     assert "pip install --no-deps" not in workflow
+    assert workflow.count("uses: actions/checkout@v7.0.1") == 2
+    assert workflow.count("uses: actions/setup-python@v7.0.0") == 2
 
 
 def test_load_config_expands_environment_variables_recursively(tmp_path, monkeypatch):
