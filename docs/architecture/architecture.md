@@ -28,6 +28,9 @@ CLI -> resolved config -> tokenizer/data stream -> corruption -> transformer
   metrics.
 - `nanodllm.training` owns distributed initialization, budgets, optimization,
   logging, checkpointing, resume, and evaluation scheduling.
+- `nanodllm.training_diagnostics` owns the opt-in analytic Bayes audit. The
+  normal trainer imports it lazily only when that audit is enabled.
+- `nanodllm.telemetry` owns atomic JSON, JSONL, and TensorBoard writer helpers.
 
 `pretrain.py` only invokes `nanodllm.cli.main`. CLI behavior belongs in the
 package.
@@ -38,13 +41,16 @@ package.
 2. Validate the complete resolved config before allocating the model.
 3. Initialize a single process or the process group supplied by `torchrun`.
 4. Resolve the tokenizer and deterministic Parquet manifest.
-5. Build the model and write its architecture fingerprint.
-6. Resolve the step/token budget, global batch, gradient accumulation, and
+5. Dispatch the analytic Bayes audit when requested; ordinary training does
+   not import its implementation module.
+6. Build the model and write its architecture fingerprint.
+7. Resolve the step/token budget, global batch, gradient accumulation, and
    learning-rate schedule.
-7. Stream, tokenize, EOS-separate, and pack documents into fixed-length rows.
-8. Corrupt only positions allowed by the batch loss mask.
-9. Predict clean tokens, accumulate gradients, and step the optimizer.
-10. Reduce counters across ranks; rank 0 writes metrics and checkpoints.
+8. Stream, tokenize, EOS-separate, and pack documents into fixed-length rows.
+9. Corrupt only positions allowed by the batch loss mask.
+10. Predict clean tokens, accumulate gradients, and step the optimizer.
+11. Reduce counters across ranks; rank 0 checkpoints and then publishes final
+    success metrics.
 
 The loader emits `DLMDataBatch` objects containing clean token IDs, a loss mask,
 an attention mask, optional position IDs, and packing metadata. This makes

@@ -1,12 +1,33 @@
 import json
+from dataclasses import fields
 from pathlib import Path
 
 import pyarrow.parquet as pq
-from nanodllm.config import DataConfig, EvalConfig, load_config
+from nanodllm.config import DataConfig, EvalConfig, TrainConfig, load_config
 from scripts.prepare_tiny_corpus import prepare_corpus
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_DIR = REPOSITORY_ROOT / "configs"
+REMOVED_TRAINING_DIAGNOSTIC_FIELDS = {
+    "real_packing_audit_only",
+    "strict_mdlm_corruption_audit_only",
+    "strict_mdlm_eos_logit_bias_calibration",
+    "strict_mdlm_eos_logit_bias_candidates",
+    "strict_mdlm_eos_loss_mass_balance",
+    "strict_mdlm_eos_overfit_canary_only",
+    "strict_mdlm_learned_eos_sampler_canary_only",
+    "strict_mdlm_real_collator_component_probe",
+    "strict_mdlm_real_collator_micro_overfit_canary_only",
+    "strict_mdlm_right_context_canary_only",
+    "strict_mdlm_sampler_eos_reachability_canary_only",
+    "strict_mdlm_t_curriculum_enabled",
+    "strict_mdlm_t_curriculum_final_t",
+    "strict_mdlm_t_curriculum_warmup_steps",
+    "strict_mdlm_t_curriculum_warmup_t",
+    "strict_mdlm_target_ce_audit_only",
+    "strict_mdlm_teacher_forced_replay_diagnostic",
+    "strict_mdlm_uniform_schedule_weight",
+}
 
 
 def test_public_defaults_do_not_assume_a_private_filesystem():
@@ -89,6 +110,16 @@ def test_bayes_audit_is_self_contained_and_cpu_only():
     assert config.data.train_data == []
     assert config.runtime.device_type == "cpu"
     assert config.train.strict_mdlm_all_token_bayes_audit_only is True
+    assert config.train.strict_mdlm_all_token_diagnostic_telemetry is True
+    assert config.train.strict_mdlm_all_token_diagnostic_t_values == [0.55, 0.95]
+
+
+def test_removed_training_diagnostics_are_absent_from_schema_and_recipe():
+    schema_fields = {field.name for field in fields(TrainConfig)}
+    recipe = json.loads((CONFIG_DIR / "mdlm_bayes_analytic_audit.json").read_text(encoding="utf-8"))
+
+    assert REMOVED_TRAINING_DIAGNOSTIC_FIELDS.isdisjoint(schema_fields)
+    assert REMOVED_TRAINING_DIAGNOSTIC_FIELDS.isdisjoint(recipe["train"])
 
 
 def test_tiny_corpus_preparation_is_deterministic_and_matches_smoke_recipe(tmp_path):

@@ -1,6 +1,9 @@
 # Training
 
-`nanodllm.training` owns the lifecycle after config resolution.
+`nanodllm.training` owns the normal lifecycle after config resolution. It
+lazily calls `nanodllm.training_diagnostics.run_configured_diagnostic` after
+tokenizer construction only when the analytic Bayes audit is enabled.
+`nanodllm.telemetry` owns structured-file and TensorBoard writer helpers.
 
 ## Launch Modes
 
@@ -109,6 +112,8 @@ changes an otherwise successful run to `blocked`, and untracked path names are
 not recorded.
 
 JSONL is the stable machine-readable surface. Console output is for operators.
+TensorBoard, garbage-collector state, and distributed process groups are
+restored or closed on both success and exceptions.
 
 ## Checkpoints
 
@@ -131,6 +136,10 @@ fails closed instead of silently changing the trajectory.
 Copying a checkpoint without its resolved config and identity records weakens
 reproducibility. Keep the complete compact run metadata even when large model
 bytes are stored separately.
+
+On successful finalization, rank 0 writes the canonical checkpoint and
+compatibility alias before publishing `metrics.json`. A failed checkpoint
+therefore cannot leave a new success snapshot that claims the model was saved.
 
 ## Evaluation Scheduling
 

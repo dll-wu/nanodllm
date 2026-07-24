@@ -29,6 +29,8 @@ and resumable checkpoints.
   modeling behavior.
 - `nanodllm/training.py` owns distributed setup, optimization, logging,
   evaluation scheduling, and checkpointing.
+- `nanodllm/training_diagnostics.py` owns the opt-in analytic Bayes audit.
+- `nanodllm/telemetry.py` owns JSON/JSONL and TensorBoard writer lifecycle.
 - `configs/` owns recipes; keep experiment toggles explicit in JSON.
 - `docs/` owns durable repository knowledge.
 
