@@ -29,6 +29,8 @@ prune build
 prune data
 prune dist
 prune reports
+prune resolved-configs
+prune resolved-paper-configs
 prune results
 prune runs
 prune venv

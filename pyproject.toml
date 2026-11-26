@@ -47,6 +47,7 @@ dev = [
     "build>=1.2.2",
     "pytest>=8.0.0",
     "ruff>=0.15.0",
+    "setuptools>=77",
     "twine>=6.1.0",
 ]
 
@@ -62,6 +63,9 @@ nanodllm-components = "recipes.components.__main__:main"
 [tool.setuptools]
 py-modules = ["pretrain"]
 include-package-data = false
+
+[tool.setuptools.cmdclass]
+sdist = "scripts.release_sdist.PublicSdist"
 
 [tool.setuptools.packages.find]
 include = ["nanodllm", "nanodllm.*", "recipes", "recipes.*", "paper", "paper.*"]

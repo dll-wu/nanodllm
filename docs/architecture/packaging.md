@@ -34,7 +34,7 @@ Inspect the wheel rather than assuming source-only files were included:
 python -m zipfile --list dist/*.whl
 ```
 
-Run `python scripts/check_release_dist.py dist` to compare the sdist and wheel inventories with the checkout. Test the installed wheel from another directory to ensure it can locate its paper assets.
+Run `python scripts/check_release_dist.py dist` to compare the sdist and wheel inventories with the checkout. It also checks every source archive entry for local user and group metadata. The build sets numeric owner IDs to zero and leaves owner names empty. Test the installed wheel from another directory to ensure it can locate its paper assets.
 
 ## Quality Checks
 

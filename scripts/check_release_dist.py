@@ -39,6 +39,8 @@ FORBIDDEN = {
     "runs",
     "results",
     "reports",
+    "resolved-configs",
+    "resolved-paper-configs",
     "dist",
     "build",
     "checkpoints",
@@ -53,10 +55,20 @@ def source_files(group, patterns):
     return {p.relative_to(ROOT).as_posix() for pat in patterns for p in (ROOT / group).rglob(pat) if p.is_file()}
 
 
+def check_archive_owners(archive):
+    owner_fields = {"uid", "gid", "uname", "gname"}
+    if owner_fields.intersection(archive.pax_headers):
+        raise ValueError("source archive contains global ownership metadata")
+    for member in archive.getmembers():
+        if member.uid or member.gid or member.uname or member.gname or owner_fields.intersection(member.pax_headers):
+            raise ValueError(f"source archive contains ownership metadata on {member.name}")
+
+
 def check(directory):
     (sdist,) = directory.glob("*.tar.gz")
     (wheel,) = directory.glob("*.whl")
     with tarfile.open(sdist, "r:gz") as archive:
+        check_archive_owners(archive)
         members = [PurePosixPath(f.name) for f in archive.getmembers() if f.isfile()]
     if len({p.parts[0] for p in members}) != 1:
         raise ValueError("expected one source distribution root")
