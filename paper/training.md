@@ -3,6 +3,7 @@
 Use `nanodllm-recipes` (or `python -m recipes.launch` from the checkout) to resolve a frozen paper profile. A profile selects one training stage, including its model, objective, optimizer, seeds, batch shape, schedule and rank count. The catalogs under `paper/profiles/` contain section defaults and per-profile overrides. The CLI combines these with the pinned `nanodllm.runtime.config` schema. It leaves `optim.nanochat_checkout` empty so the runtime uses its bundled, hash-checked optimizer.
 
 ```sh
+export CUBLAS_WORKSPACE_CONFIG=:4096:8
 nanodllm-recipes list --include-paper
 nanodllm-recipes list --group block-muon --checkpoints
 nanodllm-recipes materialize full-d8-scratch \

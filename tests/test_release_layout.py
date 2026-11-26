@@ -28,4 +28,6 @@ def test_default_recipe_list_only_reads_editable_catalogs(monkeypatch, tmp_path,
 def test_original_config_paths_use_the_relocated_recipes():
     root = Path(__file__).resolve().parents[1]
     for config in (root / "recipes" / "preview").glob("*.json"):
-        assert json.loads((root / "configs" / config.name).read_bytes()) == json.loads(config.read_bytes())
+        legacy = root / "configs" / config.name
+        assert not legacy.is_symlink()
+        assert json.loads(legacy.read_bytes()) == json.loads(config.read_bytes())

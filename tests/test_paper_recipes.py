@@ -193,3 +193,40 @@ def test_reusable_and_custom_cli_without_paper_profiles(tmp_path, monkeypatch, c
         recipes.main(["materialize", name, *args, *extra])
         receipt = json.loads(capsys.readouterr().out)
         assert load_config(receipt["config"]).train.num_steps == expected_steps
+
+
+def test_cuda_workspace_is_checked_before_corpus_inventory(tmp_path, monkeypatch):
+    profiles = recipes.read_profiles(group="full-adamw")
+    profile = profiles["full-d8-scratch"]
+    config = recipes.resolve(profiles, profile.name, corpus=tmp_path, tokenizer=tmp_path, run_dir=tmp_path)
+    monkeypatch.delenv("CUBLAS_WORKSPACE_CONFIG", raising=False)
+    monkeypatch.setattr(recipes, "verify_tokenizer", lambda p: pytest.fail("inventoried files before preflight"))
+    with pytest.raises(RuntimeError, match="CUBLAS_WORKSPACE_CONFIG"):
+        recipes.verify_inputs(profile, config)
+
+
+def test_catalogued_historical_parent_accepts_original_export_and_checks_token_count(tmp_path):
+    from nanodllm.runtime.recipe_lineage import verify_recipe_parent
+
+    profiles = recipes.read_profiles(group="full-adamw")
+    config = recipes.resolve(
+        profiles,
+        "full-d4-convert",
+        corpus=tmp_path,
+        tokenizer=tmp_path,
+        run_dir=tmp_path / "run",
+        parent=tmp_path / "original.pt",
+    )
+    required = config.recipe.parent_requirement
+    payload = {
+        "config": {"causal": True},
+        "noise": {"type": required.noise_type},
+        "step": required.steps,
+        "train_tokens": required.steps * required.batch_size,
+        "source_sha256": required.archived_sha256,
+    }
+    assert verify_recipe_parent(required, payload, portable=True, file_sha256="a" * 64) == "archived_sha256"
+    with pytest.raises(ValueError, match="training budget"):
+        verify_recipe_parent(required, {**payload, "train_tokens": 1}, portable=True, file_sha256="a" * 64)
+    with pytest.raises(ValueError, match="re-export"):
+        verify_recipe_parent(required, {**payload, "source_sha256": "b" * 64}, portable=True, file_sha256="a" * 64)

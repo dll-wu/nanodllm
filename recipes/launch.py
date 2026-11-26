@@ -13,7 +13,8 @@ import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from nanodllm.runtime.config import ExperimentConfig, config_from_dict
+from nanodllm.runtime.config import ExperimentConfig, config_from_dict, to_dict
+from nanodllm.runtime.recipe_lineage import ParentRequirement, settings_digest
 
 from recipes.data import VALIDATION_SHARD, verify_corpus, verify_tokenizer
 
@@ -92,6 +93,26 @@ def read_profiles(
     return profiles
 
 
+def _bound_settings(profile, corpus, run_dir, tokenizer):
+    settings = {section: dict(fields) for section, fields in profile.settings.items()}
+    train, data = settings.setdefault("train", {}), settings.setdefault("data", {})
+    corpus = corpus.expanduser().resolve()
+    train["run_dir"] = str(run_dir.expanduser().resolve())
+    settings.setdefault("recipe", {})["name"] = profile.name
+    data["train_data"] = [str(corpus)]
+    if data.get("tokenizer", "hf") == "byte":
+        if tokenizer is not None:
+            raise ValueError("byte profiles use the built-in tokenizer")
+    else:
+        if tokenizer is None:
+            raise ValueError("pass --tokenizer with the local tokenizer directory")
+        data["tokenizer_path"] = str(tokenizer.expanduser().resolve())
+    if profile.validation_shard:
+        validation = str(corpus / profile.validation_shard)
+        data.update(val_data=[validation], train_exclude_data=[validation])
+    return settings
+
+
 def resolve(
     profiles: dict[str, Profile],
     name: str,
@@ -105,28 +126,28 @@ def resolve(
 ) -> ExperimentConfig:
     """Bind local paths. A new parent requires an explicit digest from this reproduction."""
     profile = profiles[name]
-    settings = {section: dict(fields) for section, fields in profile.settings.items()}
-    train, data = settings.setdefault("train", {}), settings.setdefault("data", {})
-    corpus = corpus.expanduser().resolve()
-    train["run_dir"] = str(run_dir.expanduser().resolve())
-    settings.setdefault("recipe", {})["name"] = name
-    data["train_data"] = [str(corpus)]
-    if data.get("tokenizer", "hf") == "byte":
-        if tokenizer is not None:
-            raise ValueError("byte profiles use the built-in tokenizer")
-    else:
-        if tokenizer is None:
-            raise ValueError("pass --tokenizer with the local tokenizer directory")
-        data["tokenizer_path"] = str(tokenizer.expanduser().resolve())
-    if profile.validation_shard:
-        validation = str(corpus / profile.validation_shard)
-        data.update(val_data=[validation], train_exclude_data=[validation])
+    settings = _bound_settings(profile, corpus, run_dir, tokenizer)
+    train = settings["train"]
     if profile.parent:
         if parent is None:
             raise ValueError(f"pass --parent with the checkpoint for {profile.parent}")
         if profile.parent not in profiles:
             raise ValueError(f"{name} refers to unknown parent profile {profile.parent!r}")
         source = profiles[profile.parent]
+        expected = config_from_dict(_bound_settings(source, corpus, run_dir, tokenizer))
+        settings["recipe"]["parent_requirement"] = asdict(
+            ParentRequirement(
+                name=source.name,
+                settings_sha256=settings_digest(
+                    to_dict(expected), source.world_size, initialized=source.parent is not None
+                ),
+                archived_sha256=source.checkpoint_sha256,
+                causal=expected.model.causal,
+                noise_type=expected.noise.type,
+                steps=expected.train.num_steps,
+                batch_size=expected.train.total_batch_size,
+            )
+        )
         parent = parent.expanduser().resolve()
         digest = parent_sha256 if parent_sha256 is not None else source.checkpoint_sha256
         if parent.name.endswith(".weights.pt") and not parent_sha256:
@@ -168,6 +189,9 @@ def write_resolved(config: ExperimentConfig, output_dir: Path) -> tuple[Path, st
 
 
 def verify_inputs(profile: Profile, config: ExperimentConfig) -> None:
+    from nanodllm.runtime.training_runtime import validate_numeric_environment
+
+    validate_numeric_environment(config)
     if profile.frozen:
         verify_tokenizer(Path(config.data.tokenizer_path))
         verify_corpus(Path(config.data.train_data[0]))
@@ -288,7 +312,7 @@ def main(argv: list[str] | None = None) -> None:
             subprocess.run(launch_command(profile, path), check=True, env={**os.environ, "HF_HUB_OFFLINE": "1"})
     except subprocess.CalledProcessError as exc:
         raise SystemExit(exc.returncode) from None
-    except (ValueError, OSError) as exc:
+    except (ValueError, OSError, RuntimeError) as exc:
         parser.error(str(exc))
 
 

@@ -15,6 +15,7 @@ This hashes ten retained JSON snapshots, recomputes the statistics and compares 
 Use the frozen profiles to repeat a training stage with its recorded model, optimizer, token budget, seeds and rank count. Supply the pinned ClimbMix shards and tokenizer locally. For example, with the NanoDLLM commands installed and a CUDA BF16 device available, the following trains the 59M full-sequence scratch arm. [Corpus and tokenizer setup](data.md) · [Frozen profiles](profiles/)
 
 ```sh
+export CUBLAS_WORKSPACE_CONFIG=:4096:8
 nanodllm-recipes list --group full-adamw --checkpoints
 nanodllm-recipes launch full-d8-scratch \
   --corpus data/climbmix --tokenizer data/climbmix-tokenizer \

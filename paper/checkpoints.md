@@ -7,7 +7,7 @@ nanodllm-recipes list --include-paper --checkpoints
 nanodllm-recipes list --group block-muon --checkpoints
 ```
 
-The first command lists the editable recipes and all 203 paper profiles. Only the paper profiles have an archived checkpoint SHA-256 and byte size. The second command selects the block Muon group. Both commands show the parent and rank count. An exported inference file has its own digest and records the digest of its source trainer file.
+The first command lists the editable recipes and all 203 paper profiles. Only the paper profiles have an archived checkpoint SHA-256 and byte size. The second command selects the block Muon group. Both commands show the parent and rank count. An exported inference file has its own digest and records the digest of its source trainer file. For a locally repeated parent, the named conversion verifies the training settings and rank count from the parent checkpoint or its portable profile receipt, together with the objective and final training counters. Re-export older locally trained portable parents from their native checkpoints to supply this receipt.
 
 ## Models for the main comparisons
 

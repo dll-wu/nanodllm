@@ -18,6 +18,7 @@ from .runtime.core_diffusion_adapters import DiffusionContinuationAdapter
 from .runtime.core_eval_runtime import LoadedCoreModel
 from .runtime.model import DiffusionConfig, DiffusionTransformer
 from .runtime.nanollada_completep import MDLM_RULE_SET, validate_model_initialization
+from .runtime.recipe_lineage import native_profile_receipt
 
 SCHEMA = "nanodllm.weights.v1"
 BLOCK_FIELDS = (
@@ -111,7 +112,10 @@ def export_weights(trusted_checkpoint, output, *, tokenizer_path=None, expected_
     kind = settings["data"]["tokenizer"]
     tokenizer, token_identity = _tokenizer(kind, tokenizer_path)
     _check_architecture(architecture, model_config, tokenizer)
-    if kind == "hf" and training_tokenizer_sha256(trusted_checkpoint, data_identity_path) != token_identity:
+    if (
+        kind == "hf"
+        and training_tokenizer_sha256(trusted_checkpoint, data_identity_path, checkpoint=source) != token_identity
+    ):
         raise ValueError("local tokenizer contents differ from the training data identity")
     if not isinstance(source["model_state_dict"], dict) or not all(
         type(name) is str and type(value) is torch.Tensor for name, value in source["model_state_dict"].items()
@@ -129,6 +133,9 @@ def export_weights(trusted_checkpoint, output, *, tokenizer_path=None, expected_
         "model_state_dict": source["model_state_dict"],
         **_counters(source),
     }
+    receipt = native_profile_receipt(source, settings)
+    if receipt is not None:
+        payload["profile_receipt"] = receipt
     target.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(dir=target.parent, prefix=".weights-", suffix=".tmp", delete=False) as temporary:
         staging = Path(temporary.name)

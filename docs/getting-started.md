@@ -23,4 +23,4 @@ To resume an interrupted run, repeat the original command with `--set train.resu
 
 ## Earlier preview configurations
 
-The original full-sequence configs include the [small ClimbMix run](../recipes/preview/climbmix_mdlm_small.json), the [D20 run](../recipes/preview/climbmix_mdlm_d20.json), the [byte-tokenizer smoke test](../recipes/preview/smoke_byte.json), and the [analytic masking audit](experiments/bayes-analytic-audit.md). The same `nanodllm-pretrain` command reads them. The four original `configs/*.json` paths remain aliases in a source checkout. For exact replay of an old run, use its recorded source revision and environment.
+The original full-sequence configs include the [small ClimbMix run](../recipes/preview/climbmix_mdlm_small.json), the [D20 run](../recipes/preview/climbmix_mdlm_d20.json), the [byte-tokenizer smoke test](../recipes/preview/smoke_byte.json), and the [analytic masking audit](experiments/bayes-analytic-audit.md). The same `nanodllm-pretrain` command reads them. The original `configs/*.json` paths contain copies of these presets for compatibility. For exact replay of an old run, use its recorded source revision and environment.

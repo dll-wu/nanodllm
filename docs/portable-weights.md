@@ -1,6 +1,6 @@
 # Portable model weights
 
-A native trainer checkpoint retains optimizer, RNG and resume state. Use only your own or explicitly trusted trainer checkpoints. To share model weights independently of those records, export an inference file. Supply the known training-checkpoint SHA-256. For a Hugging Face tokenizer, also supply its directory and retain the run's `data_identity.v1.json` or `data_identity.v2.json` next to the input checkpoint, or pass its location with `--data-identity`.
+A native trainer checkpoint retains optimizer, RNG and resume state. Use only your own or explicitly trusted trainer checkpoints. To share model weights independently of those records, export an inference file. Supply the known training-checkpoint SHA-256. For a Hugging Face tokenizer, also supply its directory and retain the run's `data_identity.v1.json` or `data_identity.v2.json` next to the input checkpoint, or pass its location with `--data-identity`. Export and evaluation verify the logical data-identity digest recorded inside the training checkpoint. With a v2 sidecar, keep its referenced `data_inventory/` file alongside it. An HF checkpoint without a recorded binding cannot authenticate a sidecar.
 
 ```bash
 checkpoint=runs/tiny-block/model_latest.pt

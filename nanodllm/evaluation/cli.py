@@ -2,33 +2,16 @@
 
 import argparse
 import json
-import os
 from pathlib import Path
-from tempfile import NamedTemporaryFile
 
 import torch
 
+from ..release_assets import release_asset
+from ..report_io import check_output, save_result
 from .checkpoint import load_checkpoint, load_tokenizer
 from .compare import paired_comparison
 from .panels import KINDS, load_panel, prepare
 from .scores import score_panel
-
-
-def save_result(path, value, *, binary=False):
-    """Expose either a complete output file or no new result if serialization fails."""
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with NamedTemporaryFile(dir=path.parent, mode="wb" if binary else "w", delete=False) as f:
-        try:
-            if binary:
-                torch.save(value, f)
-            else:
-                json.dump(value, f, indent=2, allow_nan=False)
-                f.write("\n")
-            f.close()
-            os.replace(f.name, path)
-        finally:
-            Path(f.name).unlink(missing_ok=True)
 
 
 def main(argv=None):
@@ -70,23 +53,19 @@ def main(argv=None):
     for command in (build, score, pair):
         command.add_argument("--output", required=True, type=Path)
     args = parser.parse_args(argv)
-    # Avoid overwriting a source checkpoint, tokenizer asset, panel, or report if a path is mistyped.
-    inputs = [
-        getattr(args, k, None)
-        for k in ("checkpoint", "panel", "parquet", "manifest", "data_identity", "candidate", "reference")
-    ]
-    if any(isinstance(f, Path) and f.resolve() == args.output.resolve() for f in inputs):
-        parser.error("--output must differ from input files")
-    if getattr(args, "tokenizer", None) and args.output.resolve().is_relative_to(args.tokenizer.resolve()):
-        parser.error("--output must be outside the tokenizer directory")
     torch.set_num_threads(4)
     if args.action == "prepare":
+        reference = not args.custom and args.kind != "block"
+        manifest = args.manifest
+        if reference and manifest is None:
+            manifest = release_asset("paper/panels/corpus-v1.json")
+        check_output(parser, args.output, files=(args.parquet, manifest), tokenizer=args.tokenizer)
         result = prepare(
             args.kind,
             args.parquet,
             load_tokenizer(args.tokenizer),
-            reference=not args.custom and args.kind != "block",
-            manifest_path=args.manifest,
+            reference=reference,
+            manifest_path=manifest,
             count=args.count,
             width=args.width,
             per_stratum=args.per_stratum,
@@ -95,7 +74,18 @@ def main(argv=None):
         save_result(args.output, result, binary=True)
         print(json.dumps({k: v for k, v in result.items() if k != "data"}))
     elif args.action == "score":
+        check_output(
+            parser,
+            args.output,
+            files=(args.panel, args.manifest),
+            checkpoint=args.checkpoint,
+            training=args.trusted_training_checkpoint,
+            data_identity=args.data_identity,
+            tokenizer=args.tokenizer,
+        )
         panel = load_panel(args.panel, load_tokenizer(args.tokenizer), manifest_path=args.manifest)
+        if panel["reference"] and args.manifest is None:
+            check_output(parser, args.output, files=(release_asset("paper/panels/corpus-v1.json"),))
         dtype = args.dtype or ("bfloat16" if args.device == "cuda" and panel["kind"] == "packed" else "float32")
         loaded = load_checkpoint(
             args.checkpoint,
@@ -112,6 +102,7 @@ def main(argv=None):
         save_result(args.output, result)
         print(json.dumps(result["summary"], allow_nan=False))
     else:
+        check_output(parser, args.output, files=(args.candidate, args.reference))
         result = paired_comparison(json.loads(args.candidate.read_text()), json.loads(args.reference.read_text()))
         save_result(args.output, result)
         print(json.dumps(result["metrics"], allow_nan=False))

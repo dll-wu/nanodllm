@@ -28,10 +28,10 @@ nanodllm-pretrain \
   --set train.run_dir=runs/contributor-smoke
 ```
 
-Before proposing packaging changes, also verify both distribution formats:
+For a committed release candidate, build and verify both distributions from the selected commit. See the [packaging guide](docs/architecture/packaging.md) for the offline build.
 
 ```bash
-python -m build
+python scripts/build_release_dist.py --revision HEAD
 twine check --strict dist/*
 ```
 

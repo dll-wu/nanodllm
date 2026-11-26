@@ -78,6 +78,9 @@ namespaces = false
 "paper" = ["profiles/*.json", "panels/*.json", "tasks/*.json"]
 "paper.companion" = ["data/*.json", "manifest.json", "templates/**/*.tex", "templates/*.tex"]
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
 [tool.ruff]
 extend-exclude = ["nanodllm/runtime/vendor"]
 target-version = "py310"

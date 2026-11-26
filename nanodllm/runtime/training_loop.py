@@ -72,7 +72,7 @@ from .training_features import (
     _uses_uniform_low_variance_estimator,
 )
 from .training_frozen_draft import load_frozen_token_edit_draft_model
-from .training_initialization import load_model_state_initialization
+from .training_initialization import initialize_from_parent
 from .training_metrics import (
     _embedding_head_init_diagnostics_enabled,
     _embedding_head_init_metrics,
@@ -275,21 +275,7 @@ def _initialize_standard_training_session(session: TrainingSession) -> TrainingS
 
     _restore_rng_state(session.saved_state, config)
 
-    session.saved_state = _rng_state(config)
-    try:
-        session.model_initialization_source = load_model_state_initialization(
-            session.raw_model,
-            checkpoint_path=config.train.model_init_from,
-            tokenizer=session.tokenizer,
-            expected_sha256=config.train.model_init_expected_sha256,
-            expected_size_bytes=int(config.train.model_init_expected_size_bytes),
-            rank=session.rank,
-            world_size=session.world_size,
-            allow_token_edit_extensions=bool(config.train.model_init_allow_token_edit_extensions),
-            allow_block_self_conditioning=config.train.model_init_allow_block_self_conditioning,
-        )
-    finally:
-        _restore_rng_state(session.saved_state, config)
+    initialize_from_parent(session)
 
     from .training_block_recipe_views import setup_block_recipe
 

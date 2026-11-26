@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import hashlib
-import json
 from dataclasses import dataclass
 from pathlib import Path
 
 import torch
 
 from ..runtime.data import ByteTokenizer, PretrainedHFTokenizer
+from ..runtime.data_identity_io import load_data_identity
 from ..runtime.model import DiffusionConfig, DiffusionTransformer
 from ..runtime.replication_eval_support import digest
 
@@ -45,17 +45,22 @@ def tokenizer_identity(tokenizer):
     return digest(files)
 
 
-def training_tokenizer_sha256(checkpoint_path, data_identity_path=None):
-    """Recover a path-independent tokenizer binding from a trainer v1 or v2 data identity."""
-    if data_identity_path is None:
-        parent = Path(checkpoint_path).parent
-        data_identity_path = next(
-            (p for p in (parent / "data_identity.v2.json", parent / "data_identity.v1.json") if p.is_file()), None
-        )
-        if data_identity_path is None:
-            raise ValueError("HF training checkpoint needs its data identity sidecar; pass --data-identity")
-    data = json.loads(Path(data_identity_path).read_text())
-    inventory = data.get("identity", data)["tokenizer"]
+def training_tokenizer_sha256(checkpoint_path, data_identity_path=None, *, checkpoint):
+    """Bind the logical v1/v2 identity to the exact native checkpoint being read."""
+    from ..runtime.training_checkpoint import _validated_trajectory_record
+
+    contract = checkpoint.get("resume_contract")
+    if not isinstance(contract, dict):
+        raise ValueError("HF checkpoint lacks its embedded training data identity")
+    record = _validated_trajectory_record(contract.get("trajectory"))
+    binding = record.get("data_identity")
+    if not isinstance(binding, dict) or not binding.get("enabled") or not binding.get("identity_sha256"):
+        raise ValueError("HF checkpoint lacks its embedded training data identity")
+    path = Path(data_identity_path) if data_identity_path is not None else Path(checkpoint_path).parent
+    data = load_data_identity(path)
+    if data["hashes"]["identity_sha256"] != binding["identity_sha256"]:
+        raise ValueError("data identity sidecar differs from the checkpoint's training data identity")
+    inventory = data["tokenizer"]
     if inventory["kind"] != "hf":
         raise ValueError("expected HF tokenizer in training data identity")
     return digest(
@@ -135,7 +140,7 @@ def load_checkpoint(
         raise ValueError("HF checkpoints require an explicit local tokenizer directory; byte checkpoints take none")
     tokenizer = load_tokenizer(tokenizer_path)
     tokenizer_digest = tokenizer_identity(tokenizer)
-    if kind == "hf" and training_tokenizer_sha256(path, data_identity_path) != tokenizer_digest:
+    if kind == "hf" and training_tokenizer_sha256(path, data_identity_path, checkpoint=payload) != tokenizer_digest:
         raise ValueError("tokenizer contents differ from training data identity")
     if (config.vocab_size, config.mask_token_id) != (tokenizer.get_vocab_size(), tokenizer.get_mask_token_id()):
         raise ValueError("checkpoint and tokenizer vocabulary or MASK ID differ")

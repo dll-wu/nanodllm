@@ -36,6 +36,8 @@ def test_cpu_ar_scratch_and_portable_conversion(tmp_path, monkeypatch):
         ]
     )
     receipt = json.loads((run / "initial_state.v1.json").read_text())["model_initialization_source"]
+    assert receipt["parent_profile"] == "tiny-ar"
+    assert receipt["parent_profile_binding"] == "training_profile_receipt"
     assert receipt["sha256"] == parent_hash
     assert receipt["source_step"] == 2 and receipt["source_train_tokens"] == 256
     assert receipt["restored_optimizer_state"] is False
@@ -83,3 +85,47 @@ def test_tiny_block_public_trainer(tmp_path, monkeypatch):
     assert cfg["runtime"]["device_type"] == "cpu" and cfg["runtime"]["dtype"] == "float32"
     steps = [json.loads(line)["step"] for line in (run / "train_log.jsonl").read_text().splitlines()]
     assert steps == [1, 2] and (run / "model.pt").is_file()
+
+
+def test_named_recipe_rejects_partial_wrong_objective_and_wrong_schedule_parents(tmp_path):
+    from nanodllm.cli import main as pretrain
+    from scripts.prepare_tiny_corpus import DEFAULT_INPUT, prepare_corpus
+
+    corpus = tmp_path / "data.parquet"
+    prepare_corpus(DEFAULT_INPUT, corpus, 4)
+    profiles = launch.read_profiles(group="tiny")
+
+    def fit(profile, directory, *overrides):
+        cfg = launch.resolve(profiles, profile, corpus=corpus, run_dir=directory)
+        path, _ = launch.write_resolved(cfg, tmp_path / "configs")
+        pretrain(["--config", str(path), *overrides])
+        return directory / "model.pt"
+
+    # Keep the horizon at two steps and take a real checkpoint halfway through it.
+    correct = fit("tiny-ar", tmp_path / "ar", "--set", "train.save_every=1")
+    partial = correct.parent / "model_step1.pt"
+    scratch = fit("tiny-scratch", tmp_path / "scratch")
+    other_lr = fit("tiny-ar", tmp_path / "different-lr", "--set", "optim.lr=0.002")
+
+    def child(parent, run):
+        cfg = launch.resolve(
+            profiles, "tiny-convert", corpus=corpus, run_dir=run, parent=parent, parent_sha256=file_sha256(parent)
+        )
+        path, _ = launch.write_resolved(cfg, tmp_path / "configs")
+        pretrain(["--config", str(path)])
+
+    for source, reason in [
+        (partial, "training budget"),
+        (scratch, "training objective"),
+        (other_lr, "training profile"),
+    ]:
+        exported = source.parent / "replay.weights.pt"
+        export_weights(source, exported, expected_source_sha256=file_sha256(source))
+        for parent in (source, exported):
+            run = tmp_path / f"rejected-{source.parent.name}-{parent.name}"
+            with pytest.raises(ValueError, match=reason):
+                child(parent, run)
+            assert not (run / "model.pt").exists()
+
+    child(correct, tmp_path / "accepted")
+    assert (tmp_path / "accepted/model.pt").is_file()

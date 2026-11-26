@@ -63,6 +63,8 @@ def _validate_d4_d6_mechanics_qualification_projection(config: ExperimentConfig)
     from .telemetry_config import strip_disabled_telemetry
 
     value = asdict(config)
+    if config.recipe.parent_requirement is None:
+        value["recipe"].pop("parent_requirement")
     strip_disabled_telemetry(value)
     strip_disabled_snapshot(value)
     strip_disabled_prediction_extensions(value)

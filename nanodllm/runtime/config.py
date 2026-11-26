@@ -7,6 +7,7 @@ from typing import Any
 
 from .config_validation import validate_config
 from .mdlm_auxiliary_config import MDLMAuxiliaryConfig
+from .recipe_lineage import ParentRequirement
 
 
 @dataclass
@@ -431,6 +432,7 @@ class RecipeMetadataConfig:
 
     name: str = ""
     status: str = "unspecified"
+    parent_requirement: ParentRequirement | None = None
     locked_fields: list[str] = field(default_factory=list)
     provisional_fields: list[str] = field(default_factory=list)
 
@@ -477,6 +479,9 @@ def config_from_dict(data: dict[str, Any]) -> ExperimentConfig:
     merged = _deep_update(defaults, data)
     if "target_flops" in merged["train"]:
         raise ValueError("train.target_flops has been replaced by train.target_tokens")
+    recipe = dict(merged["recipe"])
+    if recipe.get("parent_requirement") is not None:
+        recipe["parent_requirement"] = ParentRequirement(**recipe["parent_requirement"])
     cfg = ExperimentConfig(
         model=ModelConfig(**merged["model"]),
         data=DataConfig(**merged["data"]),
@@ -489,7 +494,7 @@ def config_from_dict(data: dict[str, Any]) -> ExperimentConfig:
         ),
         eval=EvalConfig(**merged["eval"]),
         diagnostics=DiagnosticsConfig(**merged["diagnostics"]),
-        recipe=RecipeMetadataConfig(**merged["recipe"]),
+        recipe=RecipeMetadataConfig(**recipe),
     )
     validate_config(cfg)
     return cfg
@@ -505,6 +510,8 @@ def to_dict(config: ExperimentConfig) -> dict[str, Any]:
     from .telemetry_config import strip_disabled_telemetry
 
     value = asdict(config)
+    if config.recipe.parent_requirement is None:
+        value["recipe"].pop("parent_requirement")
     strip_disabled_snapshot(value)
     strip_disabled_telemetry(value)
     if config.data.bos_packing_mode == "none":

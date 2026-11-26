@@ -7,13 +7,15 @@ from pathlib import Path
 
 from ..evaluation.block_checkpoint import identity, load_block, numeric_runtime
 from ..evaluation.checkpoint import load_tokenizer, tokenizer_identity
+from ..report_io import check_output, save_result
 from .aggregate import aggregate, paired
 from .data import check_study_tokenizer, is_study_roster, prepare_panel, read_roster, study_roster
 from .scoring import OPTIONS, score_panel
 
 
-def score(args):
-    specs = read_roster(args.roster)
+def score(args, specs=None):
+    if specs is None:
+        specs = read_roster(args.roster)
     labels = {s["label"] for s in specs}
     if args.task and not set(args.task) <= labels:
         raise ValueError("unrecognized task selection")
@@ -106,14 +108,27 @@ def main(argv=None):
             counts[spec["label"]] = len(panel.examples)
         print(json.dumps({"tasks": len(counts), "items": sum(counts.values()), "per_task": counts}))
         return 0
-    result = (
-        score(args)
-        if args.command == "score"
-        else paired(
+    if args.command == "score":
+        output = check_output(
+            p,
+            args.output,
+            files=(args.bundle, args.roster),
+            checkpoint=args.checkpoint,
+            training=args.training_checkpoint,
+            data_identity=args.data_identity,
+            tokenizer=args.tokenizer,
+        )
+        specs = read_roster(args.roster)
+        if args.bundle.is_dir():
+            payloads = (args.bundle / s["data_path"] for s in specs if not args.task or s["label"] in args.task)
+            check_output(p, output, files=payloads)
+        result = score(args, specs)
+    else:
+        output = check_output(p, args.output, files=(args.left, args.right))
+        result = paired(
             json.loads(args.left.read_text()), json.loads(args.right.read_text()), draws=args.draws, seed=args.seed
         )
-    )
-    args.output.write_text(json.dumps(result, allow_nan=False, indent=2) + "\n", encoding="utf-8")
+    save_result(output, result)
     print(json.dumps(result.get("aggregates", result.get("results")), allow_nan=False))
     return 0
 

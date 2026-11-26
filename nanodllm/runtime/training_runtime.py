@@ -403,12 +403,8 @@ def _numeric_runtime_telemetry(config: ExperimentConfig) -> dict[str, bool | str
     return dict(getattr(config, NUMERIC_RUNTIME_TELEMETRY_ATTR, {}))
 
 
-def _configure_numeric_runtime(config: ExperimentConfig) -> dict[str, bool | str]:
-    """Apply config-owned process-wide numeric controls and report their effective state."""
-    with suppress(AttributeError):
-        delattr(config, NUMERIC_RUNTIME_TELEMETRY_ATTR)
-    deterministic = bool(config.runtime.deterministic_algorithms)
-    if config.runtime.device_type == "cuda" and deterministic:
+def validate_numeric_environment(config: ExperimentConfig) -> None:
+    if config.runtime.device_type == "cuda" and config.runtime.deterministic_algorithms:
         workspace_config = os.environ.get("CUBLAS_WORKSPACE_CONFIG", "")
         if workspace_config not in DETERMINISTIC_CUBLAS_WORKSPACE_CONFIGS:
             allowed = ", ".join(sorted(DETERMINISTIC_CUBLAS_WORKSPACE_CONFIGS))
@@ -417,6 +413,14 @@ def _configure_numeric_runtime(config: ExperimentConfig) -> dict[str, bool | str
             )
         if config.runtime.cudnn_benchmark:
             raise RuntimeError("deterministic CUDA requires runtime.cudnn_benchmark=false")
+
+
+def _configure_numeric_runtime(config: ExperimentConfig) -> dict[str, bool | str]:
+    """Apply config-owned process-wide numeric controls and report their effective state."""
+    with suppress(AttributeError):
+        delattr(config, NUMERIC_RUNTIME_TELEMETRY_ATTR)
+    deterministic = bool(config.runtime.deterministic_algorithms)
+    validate_numeric_environment(config)
 
     torch.use_deterministic_algorithms(deterministic, warn_only=False)
     torch.backends.cudnn.deterministic = deterministic

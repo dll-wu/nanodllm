@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 
 from ..evaluation.block_checkpoint import load_block
+from ..release_assets import release_asset
+from ..report_io import check_output, save_result
 from .panel import study_prompts
 from .reference import score_outputs
 from .sampling import POLICIES, Decoder, generate_panel, read_prompts
@@ -45,6 +47,19 @@ def main(argv=None):
     p.add_argument("--reference-model", type=Path, help="Local causal HF model and tokenizer directory")
     p.add_argument("--output", type=Path, help="Write the JSON report here (default: print the report to stdout)")
     args = p.parse_args(argv)
+    inputs = [args.prompts, args.study_parquet]
+    if args.study_parquet is not None:
+        inputs.extend((release_asset("paper/tasks/generation32.json"), release_asset("paper/panels/corpus-v1.json")))
+    output = check_output(
+        p,
+        args.output,
+        files=inputs,
+        checkpoint=args.checkpoint,
+        training=args.training_checkpoint,
+        data_identity=args.data_identity,
+        tokenizer=args.tokenizer,
+        reference_model=args.reference_model,
+    )
     model = load_block(
         args.checkpoint,
         args.tokenizer,
@@ -83,10 +98,10 @@ def main(argv=None):
         prefixes = {p["id"]: model.tokenizer.decode(p["prefix_ids"]) for p in prompts}
         del model
         result["reference"] = score_outputs(result["samples"], prefixes, args.reference_model, args.device)
-    if args.output is None:
+    if output is None:
         print(json.dumps(result, indent=2, allow_nan=False))
         return 0
-    args.output.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    save_result(output, result)
     print(json.dumps({k: result[k] for k in ("summary", "reference") if k in result}, allow_nan=False))
     return 0
 

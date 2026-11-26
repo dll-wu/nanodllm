@@ -17,6 +17,8 @@ import torch.nn as nn
 
 from .nanollada_completep import validate_model_initialization
 from .parameterization import validate_checkpoint_parameterization_contract
+from .recipe_lineage import ParentRequirement, verify_recipe_parent
+from .training_rng import _restore_rng_state, _rng_state
 
 MODEL_STATE_INITIALIZATION_SCHEMA = "nanodllm.model_state_initialization.v1"
 MODEL_STATE_INITIALIZATION_LOAD_MODE = (
@@ -185,6 +187,27 @@ def _verified_private_checkpoint_file(
         yield temporary, observed_sha256, size_bytes
 
 
+def initialize_from_parent(session):
+    """Load the parent without advancing the child's seeded training RNGs."""
+    config = session.config
+    session.saved_state = _rng_state(config)
+    try:
+        session.model_initialization_source = load_model_state_initialization(
+            session.raw_model,
+            checkpoint_path=config.train.model_init_from,
+            parent_requirement=config.recipe.parent_requirement,
+            tokenizer=session.tokenizer,
+            expected_sha256=config.train.model_init_expected_sha256,
+            expected_size_bytes=int(config.train.model_init_expected_size_bytes),
+            rank=session.rank,
+            world_size=session.world_size,
+            allow_token_edit_extensions=bool(config.train.model_init_allow_token_edit_extensions),
+            allow_block_self_conditioning=config.train.model_init_allow_block_self_conditioning,
+        )
+    finally:
+        _restore_rng_state(session.saved_state, config)
+
+
 def load_model_state_initialization(
     raw_model: nn.Module,
     *,
@@ -196,6 +219,7 @@ def load_model_state_initialization(
     allow_token_edit_extensions: bool = False,
     allow_block_self_conditioning: bool = False,
     tokenizer=None,
+    parent_requirement: ParentRequirement | None = None,
 ) -> dict[str, object] | None:
     """Load only model parameters from an exact checkpoint into a fresh run.
 
@@ -218,6 +242,7 @@ def load_model_state_initialization(
             raw_model,
             checkpoint_path=checkpoint_path,
             tokenizer=tokenizer,
+            parent_requirement=parent_requirement,
             expected_sha256=expected_sha256,
             expected_size_bytes=expected_size_bytes,
             allow_token_edit_extensions=allow_token_edit_extensions,
@@ -250,6 +275,7 @@ def load_model_state_initialization(
                 raw_model,
                 checkpoint_path=checkpoint_path,
                 tokenizer=tokenizer,
+                parent_requirement=parent_requirement,
                 expected_sha256=expected_sha256,
                 expected_size_bytes=expected_size_bytes,
                 allow_token_edit_extensions=allow_token_edit_extensions,
@@ -325,6 +351,7 @@ def _load_model_state_initialization_rank_zero(
     allow_token_edit_extensions: bool = False,
     allow_block_self_conditioning: bool = False,
     tokenizer=None,
+    parent_requirement: ParentRequirement | None = None,
 ) -> dict[str, object]:
     """Admit and load one parent checkpoint on the designated source rank."""
 
@@ -342,6 +369,19 @@ def _load_model_state_initialization_rank_zero(
         identity_seconds = time.monotonic() - identity_started
         portable = path.name.endswith(".weights.pt")
         checkpoint = torch.load(verified_file, map_location="cpu", weights_only=portable)
+        if parent_requirement is not None:
+            parent_binding = verify_recipe_parent(
+                parent_requirement, checkpoint, portable=portable, file_sha256=observed_sha256
+            )
+            if not portable and parent_binding == "training_profile_receipt":
+                from ..evaluation.checkpoint import tokenizer_identity, training_tokenizer_sha256
+
+                settings = checkpoint["config"] if "model_config" in checkpoint else checkpoint["train_config"]
+                if settings["data"]["tokenizer"] == "hf" and (
+                    tokenizer is None
+                    or training_tokenizer_sha256(path, checkpoint=checkpoint) != tokenizer_identity(tokenizer)
+                ):
+                    raise ValueError("parent training tokenizer differs from the child tokenizer")
         if portable:
             from ..evaluation.checkpoint import tokenizer_identity
             from ..weights import portable_parent
@@ -439,6 +479,9 @@ def _load_model_state_initialization_rank_zero(
         "token_edit_extension_tensor_names": missing_keys,
         "token_edit_extension_state_sha256": extension_state_sha256,
     }
+    if parent_requirement is not None:
+        source["parent_profile"] = parent_requirement.name
+        source["parent_profile_binding"] = parent_binding
     if source_parameterization is not None:
         source["source_parameterization_contract_sha256"] = source_parameterization["contract_sha256"]
     if allow_block_self_conditioning:

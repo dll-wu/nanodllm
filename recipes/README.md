@@ -43,7 +43,7 @@ nanodllm-recipes launch d4-block30 --corpus "$corpus" --tokenizer "$tokenizer" \
   --parent "$parent" --parent-sha256 "$parent_sha" --run-dir runs/d4-block30
 ```
 
-The two routes each spend 461,373,440 positions. The continuation loads its parent's weights and starts a fresh optimizer, schedule and data stream. Its `initial_state.v1.json` records the parent digest. [Portable weight export](../docs/portable-weights.md)
+The two routes each spend 461,373,440 positions. The continuation loads its parent's weights and starts a fresh optimizer, schedule and data stream. Its `initial_state.v1.json` records the parent digest. The named conversion also checks the parent’s training profile, objective, completed updates and allocated tokens. [Portable weight export](../docs/portable-weights.md)
 
 To adapt the comparison, copy `profiles/d4-matched.json` and edit `defaults` for changes shared by the stages. Each profile's `overrides` replaces individual fields in those sections. Set `validation_shard` to the held-out filename for your corpus. If you change the vocabulary or architecture, recompute the token budgets for the new parameter count. Pass the same `--catalog` path for every stage. The launcher reads that catalog independently of the checkout's frozen paper profiles.
 
