@@ -10,6 +10,8 @@ from .reproduce import ROOT, reproduce, sha256
 def verify():
     manifest = json.loads((ROOT / "manifest.json").read_bytes())
     inputs = {p.name: sha256(p.read_bytes()) for p in (ROOT / "data").glob("*.json")}
+    plan = ROOT / "data" / "task-draws.npz"
+    inputs[plan.name] = sha256(plan.read_bytes())
     if inputs != manifest["inputs"]:
         raise ValueError("Numerical inputs differ from the pinned public snapshots")
     outputs, stats = reproduce()

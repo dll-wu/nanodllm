@@ -8,7 +8,7 @@ From the repository root, with Python 3.11+ and NumPy, run
 python -m paper.companion --check
 ```
 
-This hashes ten retained JSON snapshots, recomputes the statistics and compares 67 TeX files against the edition manifest. They cover seven numbered figures, thirteen numbered tables and supplementary exhibits. The check runs offline using the losses, counts and aggregates from the original experiments. For the TeX files and unrounded `statistics.json`, run `python -m paper.companion --output build/paper-results`. The results guide explains which intervals can be recomputed from paired observations and which summaries use historical aggregates. [Results guide](results.md) · [SHA-256 manifest](companion/manifest.json)
+This hashes ten retained JSON snapshots and the task bootstrap draws, recomputes the statistics and compares 67 TeX files against the edition manifest. They cover seven numbered figures, thirteen numbered tables and supplementary exhibits. The check runs offline using the losses, counts and aggregates from the original experiments. For the TeX files and unrounded `statistics.json`, run `python -m paper.companion --output build/paper-results`. The results guide explains which intervals can be recomputed from paired observations and which summaries use historical aggregates. [Results guide](results.md) · [SHA-256 manifest](companion/manifest.json)
 
 ## Train an exact paper profile
 

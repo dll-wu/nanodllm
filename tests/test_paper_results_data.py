@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import numpy as np
 from paper.companion.reproduce import ROOT, load
 
 
@@ -69,3 +70,18 @@ def test_development_and_alternate_rate_coverage():
     assert len(data["d8_discovery_grid"]) == 11
     assert {r["panel"] for r in data["large"]["generation"]} == {"opened", "fresh"}
     assert len(data["settings"]) == 4
+
+
+def test_archived_task_draws_only_contain_resampling_counts():
+    groups = load("task-counts")
+    expected = {
+        "__".join([depth, *group["tasks"]]): sum(outcome["items"] for outcome in group["outcomes"])
+        for depth, datasets in groups.items()
+        for group in datasets
+    }
+    with np.load(ROOT / "data" / "task-draws.npz", allow_pickle=False) as archive:
+        assert set(archive.files) == set(expected)
+        for key, items in expected.items():
+            counts = archive[key]
+            assert counts.dtype.kind == "u" and counts.ndim == 2 and len(counts) == 10000
+            assert np.all(counts.sum(axis=1) == items)

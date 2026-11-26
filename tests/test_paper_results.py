@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 from paper.companion.__main__ import verify
@@ -24,9 +25,10 @@ def test_exact_exhibit_inventory(rebuilt):
     assert sorted(v["number"] for k, v in paper.items() if k.startswith("tables/")) == list(range(1, 14))
     assert sorted(v["number"] for k, v in paper.items() if k.startswith("figures/")) == list(range(1, 8))
     assert len(outputs) == 67
+    input_names = {Path(name).stem for name in manifest["inputs"]}
     for name, record in manifest["outputs"].items():
         assert hashlib.sha256(outputs[name].encode()).hexdigest() == record["sha256"]
-        assert all(f"{k}.json" in manifest["inputs"] for k in record["inputs"])
+        assert set(record["inputs"]) <= input_names
 
 
 def test_display_policy_and_decoder_example(rebuilt):

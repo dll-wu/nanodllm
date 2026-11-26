@@ -12,7 +12,8 @@
     "historical.json": "b181d4a07fefd85e80d9232fa860111d742c9b6f3216ad7f41d0d50d0f142298",
     "scaling.json": "feb410f73c8067c0e839e49c18a238e5c43599611f3afbe02271b4f8132c97c7",
     "scope.json": "e69c299f9d6643ddb786c55459f26f84d0f030043c766e07fba355be3cea5d89",
-    "task-counts.json": "a208e131cd084f88f97ca7c2824f4675e0893c320b2ec9b3c58e0d10f0aac36b"
+    "task-counts.json": "a208e131cd084f88f97ca7c2824f4675e0893c320b2ec9b3c58e0d10f0aac36b",
+    "task-draws.npz": "c1c20b475c48b77a0204768885a6dec9dcb099e42cdb9791b1a01875d21d4829"
   },
   "series": {
     "results": {
@@ -48,7 +49,8 @@
       "public_inputs": [
         "block",
         "block-losses",
-        "task-counts"
+        "task-counts",
+        "task-draws"
       ],
       "manuscript_manifest_sha256": "0c465e9f8424633690f138bb68edd61ef77ac5de819073828046ed989eceff73",
       "verified_source_records": 30
@@ -404,7 +406,8 @@
       "inputs": [
         "block",
         "block-losses",
-        "task-counts"
+        "task-counts",
+        "task-draws"
       ]
     },
     "tables/block-tasks-main.tex": {
@@ -412,7 +415,8 @@
       "inputs": [
         "block",
         "block-losses",
-        "task-counts"
+        "task-counts",
+        "task-draws"
       ]
     },
     "tables/block-tasks.tex": {

@@ -76,7 +76,7 @@ namespaces = false
 "recipes" = ["*.json", "profiles/*.json", "preview/*.json"]
 "recipes.components" = ["*.json"]
 "paper" = ["profiles/*.json", "panels/*.json", "tasks/*.json"]
-"paper.companion" = ["data/*.json", "manifest.json", "templates/**/*.tex", "templates/*.tex"]
+"paper.companion" = ["data/*.json", "data/task-draws.npz", "manifest.json", "templates/**/*.tex", "templates/*.tex"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

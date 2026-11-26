@@ -252,9 +252,8 @@ def validate_token_edit(config: ExperimentConfig) -> None:
             raise ValueError("full-draft provenance requires model.token_edit_provenance_embedding=true")
         if config.train.token_edit_prefix_enabled:
             raise ValueError("full-draft provenance does not support token-edit prefix training")
-    elif config.model.token_edit_provenance_embedding:
-        if token_edit_enabled:
-            raise ValueError("token-edit provenance embeddings require a provenance-enabled token-edit canvas")
+    elif config.model.token_edit_provenance_embedding and token_edit_enabled:
+        raise ValueError("token-edit provenance embeddings require a provenance-enabled token-edit canvas")
     validate_draft_credit(config)
     if token_edit_enabled:
         if config.train.token_edit_corruption_batch_fraction <= 0:

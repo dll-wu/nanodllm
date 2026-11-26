@@ -37,6 +37,7 @@ TOP = {
     "pretrain.py",
     ".github/workflows/quality.yml",
 }
+TASK_DRAWS = "paper/companion/data/task-draws.npz"
 VENDOR_LICENSE = "nanodllm/runtime/vendor/nanochat/LICENSE"
 FORBIDDEN = {
     ".git",
@@ -78,7 +79,11 @@ def inventories(root, commit):
         name = raw_name.decode()
         path = PurePosixPath(name)
         group = path.parts[0]
-        if name not in TOP and name != VENDOR_LICENSE and path.suffix not in SOURCE_SUFFIXES.get(group, ()):
+        if (
+            name not in TOP
+            and name not in {VENDOR_LICENSE, TASK_DRAWS}
+            and path.suffix not in SOURCE_SUFFIXES.get(group, ())
+        ):
             continue
         if FORBIDDEN.intersection(path.parts):
             raise ValueError(f"unexpected local artifact: {name}")
@@ -96,7 +101,7 @@ def inventories(root, commit):
         elif mode not in {"100644", "100755"}:
             raise ValueError(f"unsupported Git entry: {name}")
         source[name] = blob
-        if name in {"pretrain.py", VENDOR_LICENSE} or path.suffix in WHEEL_SUFFIXES.get(group, ()):
+        if name in {"pretrain.py", VENDOR_LICENSE, TASK_DRAWS} or path.suffix in WHEEL_SUFFIXES.get(group, ()):
             wheel[name] = blob
     missing = (TOP | {VENDOR_LICENSE}) - source.keys()
     if missing:

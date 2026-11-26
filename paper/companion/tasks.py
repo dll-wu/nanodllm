@@ -7,10 +7,11 @@ VARIANTS = tuple(
 )
 
 
-def task_scores(groups_by_depth, panels):
+def task_scores(groups_by_depth, panels, *, draws=None):
+    """Recompute task scores using the supplied bootstrap draws or a fresh seeded resample."""
     result = {}
     for depth, groups in groups_by_depth.items():
-        rng = np.random.default_rng(20261118 + int(depth[1:]))
+        rng = np.random.default_rng(20261118 + int(depth[1:])) if draws is None else None
         boots = np.zeros((10000, 2 * len(VARIANTS)))
         scores = {}
         for group in groups:
@@ -39,7 +40,18 @@ def task_scores(groups_by_depth, panels):
             # are already added to the same row when we resample each dataset.
             values, inverse = np.unique(contribution, axis=0, return_inverse=True)
             frequencies = np.bincount(inverse.ravel(), weights=counts)
-            boots += rng.multinomial(n, frequencies / n, size=len(boots)) @ values / n
+            if draws is None:
+                sampled = rng.multinomial(n, frequencies / n, size=len(boots))
+            else:
+                key = "__".join([depth, *tasks])
+                sampled = draws[key]
+                if (
+                    sampled.shape != (len(boots), len(values))
+                    or sampled.dtype.kind != "u"
+                    or not np.all(sampled.sum(axis=1) == n)
+                ):
+                    raise ValueError(f"Invalid bootstrap counts for {key}")
+            boots += sampled @ values / n
         if scores.keys() != panels.keys():
             raise ValueError(f"Missing task outcomes for {depth}")
         aggregates = {}

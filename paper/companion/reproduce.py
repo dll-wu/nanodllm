@@ -6,6 +6,8 @@ import math
 from pathlib import Path
 from statistics import mean
 
+import numpy as np
+
 from . import block, components, development, historical, main_exhibits, scaling
 from .claims import diagnostic_values, transfer
 from .intervals import block_intervals, component_intervals
@@ -38,7 +40,8 @@ def _block_data():
                 data["d8"]["paired"].append({**result, "seed": int(parts[1][1:]), "conversion_lr": float(parts[2])})
             else:
                 data["large"]["paired"].append({**result, "depth": int(parts[0][1:]), "panel": parts[1]})
-    data["tasks"] = task_scores(load("task-counts"), data["task_panels"])
+    with np.load(ROOT / "data" / "task-draws.npz", allow_pickle=False) as draws:
+        data["tasks"] = task_scores(load("task-counts"), data["task_panels"], draws=draws)
     for row in data["task_rows"]:
         pair = data["tasks"]["depths"][row["depth"]]["primary_accuracy"][row["task"]]
         for arm, accuracy in zip(("scratch_accuracy", "conversion_accuracy"), pair, strict=True):
