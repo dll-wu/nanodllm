@@ -43,3 +43,6 @@ wandb/
 *.ckpt
 events.out.tfevents.*
 *.tmp
+
+/paper-output/
+/resolved-paper-configs/

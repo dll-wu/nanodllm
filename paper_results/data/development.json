@@ -1,0 +1,469 @@
+{
+  "development_path": [
+    {
+      "stage": "Optimizer recipe",
+      "label": "Native AdamW",
+      "bpb": 1.6050214082938463,
+      "training_seed": 47,
+      "total_tpp": 20,
+      "total_source_tokens": 230686720,
+      "physical_parameters": 19922944,
+      "eb": 65536,
+      "lr": 0.0024
+    },
+    {
+      "stage": "Optimizer recipe",
+      "label": "Role-specific AdamW",
+      "bpb": 1.5002115094528508,
+      "training_seed": 47,
+      "total_tpp": 20,
+      "total_source_tokens": 230686720,
+      "physical_parameters": 19922944,
+      "eb": 65536,
+      "lr": 0.0012
+    },
+    {
+      "stage": "Optimizer recipe",
+      "label": "Muon scratch20",
+      "bpb": 1.4227670396434058,
+      "training_seed": 47,
+      "total_tpp": 20,
+      "total_source_tokens": 230686720,
+      "physical_parameters": 19922944,
+      "eb": 65536,
+      "lr": 0.007
+    },
+    {
+      "stage": "Longer training",
+      "label": "Muon scratch40",
+      "bpb": 1.364395956058249,
+      "training_seed": 47,
+      "total_tpp": 40,
+      "total_source_tokens": 461373440,
+      "physical_parameters": 19922944,
+      "eb": 65536,
+      "lr": 0.007
+    },
+    {
+      "stage": "Budget allocation",
+      "label": "AR10→MDLM30",
+      "bpb": 1.3550078197902944,
+      "training_seed": 47,
+      "total_tpp": 40,
+      "total_source_tokens": 461373440,
+      "physical_parameters": 19922944,
+      "eb": 65536,
+      "lr": 0.007
+    },
+    {
+      "stage": "Backbone bundle",
+      "label": "AR10→MDLM30 + nanochat-derived backbone",
+      "bpb": 1.3310925115757835,
+      "training_seed": 47,
+      "total_tpp": 40,
+      "total_source_tokens": 461373440,
+      "physical_parameters": 36700242,
+      "eb": 65536,
+      "lr": 0.007
+    }
+  ],
+  "paired_development": [
+    {
+      "comparison": "Role-specific vs. native AdamW",
+      "seed": 47,
+      "control_bpb": 1.6050214082938463,
+      "candidate_bpb": 1.5002115094528508
+    },
+    {
+      "comparison": "Role-specific vs. native AdamW",
+      "seed": 48,
+      "control_bpb": 1.612592009616765,
+      "candidate_bpb": 1.4923479503648591
+    },
+    {
+      "comparison": "Muon vs. role-specific AdamW",
+      "seed": 47,
+      "control_bpb": 1.5002115094528508,
+      "candidate_bpb": 1.4227670396434058
+    },
+    {
+      "comparison": "Muon vs. role-specific AdamW",
+      "seed": 48,
+      "control_bpb": 1.4923479503648591,
+      "candidate_bpb": 1.4166106787678745
+    },
+    {
+      "comparison": "AR10$\\rightarrow$MDLM30 vs. scratch40",
+      "seed": 48,
+      "control_bpb": 1.3688827115852369,
+      "candidate_bpb": 1.3592713524530677
+    },
+    {
+      "comparison": "AR10$\\rightarrow$MDLM30 vs. scratch40",
+      "seed": 49,
+      "control_bpb": 1.3678982020219888,
+      "candidate_bpb": 1.3567782598787996
+    },
+    {
+      "comparison": "Nanochat-derived vs. plain, 10$\\rightarrow$30",
+      "seed": 47,
+      "control_bpb": 1.3550078197902944,
+      "candidate_bpb": 1.3310925115757835
+    },
+    {
+      "comparison": "Nanochat-derived vs. plain, 10$\\rightarrow$30",
+      "seed": 48,
+      "control_bpb": 1.3592713524530677,
+      "candidate_bpb": 1.330277578406784
+    }
+  ],
+  "allocation_grid": [
+    {
+      "ar_tpp": 0,
+      "mdlm_tpp": 40,
+      "training_seed": 47,
+      "bpb": 1.364395956058249
+    },
+    {
+      "ar_tpp": 5,
+      "mdlm_tpp": 35,
+      "training_seed": 47,
+      "bpb": 1.3599573786532484
+    },
+    {
+      "ar_tpp": 10,
+      "mdlm_tpp": 30,
+      "training_seed": 47,
+      "bpb": 1.3550078197902944
+    },
+    {
+      "ar_tpp": 20,
+      "mdlm_tpp": 20,
+      "training_seed": 47,
+      "bpb": 1.3639765971213946
+    },
+    {
+      "ar_tpp": 30,
+      "mdlm_tpp": 10,
+      "training_seed": 47,
+      "bpb": 1.3968970808602008
+    },
+    {
+      "ar_tpp": 35,
+      "mdlm_tpp": 5,
+      "training_seed": 47,
+      "bpb": 1.4294394109612343
+    }
+  ],
+  "conversion_lr": [
+    {
+      "seed": 47,
+      "lr": 0.007,
+      "eb": 65536,
+      "mean_bpb": 1.3550078197902944,
+      "ar_tpp": 10,
+      "mdlm_tpp": 30
+    },
+    {
+      "seed": 47,
+      "lr": 0.007,
+      "eb": 65536,
+      "mean_bpb": 1.3639765971213946,
+      "ar_tpp": 20,
+      "mdlm_tpp": 20
+    },
+    {
+      "seed": 47,
+      "lr": 0.00175,
+      "eb": 65536,
+      "mean_bpb": 1.3680203589357136,
+      "ar_tpp": 10,
+      "mdlm_tpp": 30
+    },
+    {
+      "seed": 47,
+      "lr": 0.0035,
+      "eb": 65536,
+      "mean_bpb": 1.3559217724208732,
+      "ar_tpp": 10,
+      "mdlm_tpp": 30
+    },
+    {
+      "seed": 47,
+      "lr": 0.014,
+      "eb": 65536,
+      "mean_bpb": 1.3705578368501659,
+      "ar_tpp": 10,
+      "mdlm_tpp": 30
+    },
+    {
+      "seed": 47,
+      "lr": 0.00175,
+      "eb": 65536,
+      "mean_bpb": 1.3782450894958793,
+      "ar_tpp": 20,
+      "mdlm_tpp": 20
+    },
+    {
+      "seed": 47,
+      "lr": 0.0035,
+      "eb": 65536,
+      "mean_bpb": 1.364696330329489,
+      "ar_tpp": 20,
+      "mdlm_tpp": 20
+    },
+    {
+      "seed": 47,
+      "lr": 0.014,
+      "eb": 65536,
+      "mean_bpb": 1.3772891710152124,
+      "ar_tpp": 20,
+      "mdlm_tpp": 20
+    }
+  ],
+  "schedule_lr": [
+    {
+      "seed": 47,
+      "shape": "linear",
+      "horizon": 20,
+      "eb": 65536,
+      "lr": 0.0035,
+      "mean_bpb": 1.470344417875173
+    },
+    {
+      "seed": 47,
+      "shape": "wsd",
+      "horizon": 20,
+      "eb": 65536,
+      "lr": 0.0035,
+      "mean_bpb": 1.4317411466553773
+    },
+    {
+      "seed": 47,
+      "shape": "linear",
+      "horizon": 20,
+      "eb": 65536,
+      "lr": 0.007,
+      "mean_bpb": 1.438841327498272
+    },
+    {
+      "seed": 47,
+      "shape": "wsd",
+      "horizon": 20,
+      "eb": 65536,
+      "lr": 0.007,
+      "mean_bpb": 1.4227670396434058
+    },
+    {
+      "seed": 47,
+      "shape": "linear",
+      "horizon": 20,
+      "eb": 65536,
+      "lr": 0.014,
+      "mean_bpb": 1.4280816303955253
+    },
+    {
+      "seed": 47,
+      "shape": "wsd",
+      "horizon": 20,
+      "eb": 65536,
+      "lr": 0.014,
+      "mean_bpb": 1.4283080133122144
+    },
+    {
+      "seed": 47,
+      "shape": "wsd",
+      "horizon": 160,
+      "eb": 65536,
+      "lr": 0.0035,
+      "mean_bpb": 1.3114290832597408
+    },
+    {
+      "seed": 47,
+      "shape": "wsd",
+      "horizon": 160,
+      "eb": 65536,
+      "lr": 0.007,
+      "mean_bpb": 1.3235467963507943
+    },
+    {
+      "seed": 47,
+      "shape": "wsd",
+      "horizon": 160,
+      "eb": 65536,
+      "lr": 0.014,
+      "mean_bpb": 1.3378968825997801
+    },
+    {
+      "seed": 47,
+      "shape": "linear",
+      "horizon": 160,
+      "eb": 65536,
+      "lr": 0.0035,
+      "mean_bpb": 1.3095240755932578
+    },
+    {
+      "seed": 47,
+      "shape": "linear",
+      "horizon": 160,
+      "eb": 65536,
+      "lr": 0.007,
+      "mean_bpb": 1.3157438090432088
+    },
+    {
+      "seed": 47,
+      "shape": "linear",
+      "horizon": 160,
+      "eb": 65536,
+      "lr": 0.014,
+      "mean_bpb": 1.3232979523091815
+    },
+    {
+      "seed": 47,
+      "shape": "linear",
+      "horizon": 20,
+      "eb": 65536,
+      "lr": 0.028,
+      "mean_bpb": 1.4848734463422835
+    }
+  ],
+  "batch_horizon": [
+    {
+      "seed": 47,
+      "horizon": 20,
+      "eb": 32768,
+      "lr": 0.007,
+      "mean_bpb": 1.4422194825423178
+    },
+    {
+      "seed": 47,
+      "horizon": 20,
+      "eb": 65536,
+      "lr": 0.007,
+      "mean_bpb": 1.4227670396434058
+    },
+    {
+      "seed": 47,
+      "horizon": 20,
+      "eb": 131072,
+      "lr": 0.007,
+      "mean_bpb": 1.4256231382420002
+    },
+    {
+      "seed": 47,
+      "horizon": 20,
+      "eb": 262144,
+      "lr": 0.007,
+      "mean_bpb": 1.4520401582672515
+    },
+    {
+      "seed": 47,
+      "horizon": 160,
+      "eb": 65536,
+      "lr": 0.007,
+      "mean_bpb": 1.3235467963507943
+    },
+    {
+      "seed": 47,
+      "horizon": 160,
+      "eb": 131072,
+      "lr": 0.007,
+      "mean_bpb": 1.2954780245634698
+    },
+    {
+      "seed": 47,
+      "horizon": 160,
+      "eb": 262144,
+      "lr": 0.007,
+      "mean_bpb": 1.285353059734818
+    }
+  ],
+  "short_batch_lr": [
+    {
+      "seed": 47,
+      "horizon": 20,
+      "eb": 32768,
+      "lr": 0.0035,
+      "mean_bpb": 1.4423647077873318
+    },
+    {
+      "seed": 47,
+      "horizon": 20,
+      "eb": 65536,
+      "lr": 0.0035,
+      "mean_bpb": 1.4317411466553773
+    },
+    {
+      "seed": 47,
+      "horizon": 20,
+      "eb": 32768,
+      "lr": 0.007,
+      "mean_bpb": 1.4422194825423178
+    },
+    {
+      "seed": 47,
+      "horizon": 20,
+      "eb": 65536,
+      "lr": 0.007,
+      "mean_bpb": 1.4227670396434058
+    }
+  ],
+  "long_budget": [
+    {
+      "seed": 48,
+      "horizon": 160,
+      "eb": 65536,
+      "lr": 0.007,
+      "mean_bpb": 1.3194200094416781
+    },
+    {
+      "seed": 49,
+      "horizon": 160,
+      "eb": 65536,
+      "lr": 0.007,
+      "mean_bpb": 1.3170939670784867
+    },
+    {
+      "seed": 48,
+      "horizon": 160,
+      "eb": 131072,
+      "lr": 0.007,
+      "mean_bpb": 1.2933212449642437
+    },
+    {
+      "seed": 49,
+      "horizon": 160,
+      "eb": 131072,
+      "lr": 0.007,
+      "mean_bpb": 1.2886144674566031
+    },
+    {
+      "seed": 48,
+      "horizon": 160,
+      "eb": 262144,
+      "lr": 0.007,
+      "mean_bpb": 1.283905381249377
+    },
+    {
+      "seed": 49,
+      "horizon": 160,
+      "eb": 262144,
+      "lr": 0.007,
+      "mean_bpb": 1.2824313133777603
+    },
+    {
+      "seed": 48,
+      "horizon": 160,
+      "eb": 524288,
+      "lr": 0.007,
+      "mean_bpb": 1.2857352204176018
+    },
+    {
+      "seed": 49,
+      "horizon": 160,
+      "eb": 524288,
+      "lr": 0.007,
+      "mean_bpb": 1.2880708839705042
+    }
+  ]
+}

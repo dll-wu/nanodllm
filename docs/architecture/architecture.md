@@ -8,7 +8,9 @@ CLI -> resolved config -> tokenizer/data stream -> corruption -> transformer
     -> loss/optimizer -> evaluation -> logs/checkpoints
 ```
 
-## Module Ownership
+The paper runtime lives under `nanodllm.paper_runtime`. Recipe materialization, checkpoint loading and evaluators are separate public modules. See the [paper release map](../release.md).
+
+## Preview module ownership
 
 - `nanodllm.cli` parses command-line arguments and dotted config overrides.
 - `nanodllm.config` owns dataclass schemas, JSON loading, validation, and

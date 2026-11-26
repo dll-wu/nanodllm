@@ -3,6 +3,16 @@
 The trainer records enough state to make differences inspectable, but exact
 replay still depends on hardware and software outside the checkpoint.
 
+## Count parent and child training
+
+Use `python -m nanodllm.paper_compute RUN` for a scratch run. For a continuation, supply `--parent-run PARENT_RUN` and, if the child used a portable export, `--parent-checkpoint PARENT.weights.pt`. The tool verifies the parent identity against the child and combines the actual processed tokens and estimated training FLOPs. A parent shared across experiments counts once in each complete recipe comparison. Wall time is the recorded training time, excluding queue and evaluation. A resumed stage can retain only its final session time, so its total time is reported as unknown. A historical endpoint without a complete pair of native run records cannot supply a newly verified two-stage compute ledger.
+
+## Comparing proposed changes
+
+Before training, choose the reference profile, total token budget, primary metric and direction, precision, evaluation panel and seeds. Fix the attention and scoring policy for a paired comparison. For block models, record the visible prefix, number of mask slots, block length and tokens committed per forward. Score both models on the same examples and corruption draws. Use the development panel for tuning, then score the chosen settings on the held-out panel. Reusing a holdout to choose among settings makes it development evidence for that decision.
+
+Record the value from each training seed separately. A paired bootstrap over examples estimates uncertainty conditional on those checkpoints. Use independent training seeds to measure training variability. When assessing generation efficiency, report repetition and stopping alongside reference-model loss, forward count and throughput. Record shortened runs, failed attempts and missing measurements explicitly. These conventions apply equally to manual and automated experiments.
+
 ## Minimum Run Record
 
 Retain:

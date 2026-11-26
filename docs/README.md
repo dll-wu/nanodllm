@@ -1,6 +1,8 @@
 # Documentation
 
-Start with the repository `README.md`, then open the guide that matches the
+For the paper release, begin with [training profiles](paper-recipes.md), [data](paper-data.md), [corpus evaluation](paper-evaluation.md), [tasks and generation](paper-tasks-generation.md), [component comparisons](paper-components.md), [checkpoint inventory](checkpoints.md) and [paper results](paper-results.md). [Release notes](release.md) describe source provenance and local validation.
+
+For the original preview trainer, start with the repository `README.md`, then open the guide that matches the
 task:
 
 - [`getting-started.md`](getting-started.md): install, create portable smoke

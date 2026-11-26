@@ -25,3 +25,7 @@ retaining sensitive information while investigating a report.
 nano-dllm is experimental training software, not a hardened hosted service.
 Users are responsible for securing their datasets, credentials, checkpoints,
 logs, compute environments, and any models or services they build with it.
+
+## Model files
+
+Use the weights-only loader for exchanged model files and verify the expected digest from the model publisher. Native training checkpoints and exact-resume files use Python pickle and require trust in the producer. The [portable weights guide](docs/portable-weights.md) gives the export procedure.

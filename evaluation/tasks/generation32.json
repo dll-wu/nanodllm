@@ -1,0 +1,167 @@
+{
+  "schema": "nanodllm.paper_generation.panel.v1",
+  "prefix_tokens": 192,
+  "rows": [
+    {
+      "id": "fresh-677e776ffda2e41e8d95c2dde98a69a3568599f344d138cd7c0ba2f7296f3199",
+      "row": 51203,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-0ee5be6d163a35b32488ea06f360374bd2f074c82cc132f505ef718da0e35afb",
+      "row": 51218,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-71cb622efb506478c0f14a8ba0d2e2f782e01d9c0eb944bb82b30c6f4634b306",
+      "row": 51224,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-aaa05a00d789465b076783fe343ecb9502e7a4e8af0a98128645da2567a5835b",
+      "row": 51225,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-d006ada481bd1944dc2f465f81b1fcf14ef3d8ee2e35236a9909316ffc665c66",
+      "row": 51238,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-09ee52a91fca8bfdb67e78300a7fdb8ca9aa49462fc9b44645b632255ec1b2d1",
+      "row": 51241,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-bafc28ff3ca0bced9a275db2ffae85ce6f16ff375b5bcdeec653219bb0bea61b",
+      "row": 51244,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-da9ab3f99a08de108a8b4a728ee2a8515f8a72df9ad34f5ccf6ba48eee0c3c2c",
+      "row": 51248,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-04ba255347a2af34795d5719cfa75c5f9a1beadf1e57b35f58419e6b80747d85",
+      "row": 51253,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-c92628fbecdd2425ac03fe6bc678ade2183697697847f9dc32855728968859ac",
+      "row": 51259,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-3a2a26fbe2545190e7f8c575eb109dbfb5aa6214bab1eb0a452d6778ab34eff5",
+      "row": 51264,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-7b7b7625594ee09760a268628b4d113a2a295f2b07f284e243fa13584b20d060",
+      "row": 51266,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-67aaf38978c3085a3a0512bae4e7dab20471d1b45d39bc7da34d65da3011b7eb",
+      "row": 51269,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-701bfbd2217f2ba47d94927f7254a6c4506ee369d113bd87e30432f2a1f6e53d",
+      "row": 51273,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-f21cec51b4350a14ee74b262e991dc21fa20dd14d21eee01b481703314452d1d",
+      "row": 51277,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-c9cf964c5d3999efb39242ab910fd8e59a08cb17e70ba5c9fe739b4c5bfda759",
+      "row": 51282,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-51ee0da163e2bd8895aaeeb49c511897865efdb950e04dd1021590583bc27817",
+      "row": 51284,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-76b55e1e302ff4ecf9ff028079dac5c82c97e04f61fc6604945eca52ec172a3a",
+      "row": 51288,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-d1b53038fcd5d0f7f90d70d26eb76555296f8d9d6c7c53229c5580f12d89d9c2",
+      "row": 51293,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-6f9f92ced526c7bc50cb94a4f02a309af749f2ca2780b30940c064ada4cea36a",
+      "row": 51295,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-1bf58a5e4cefb01b04c19376a77288f125a4dc37277dc5f88450b0ff71c22580",
+      "row": 51301,
+      "length_stratum": "long"
+    },
+    {
+      "id": "fresh-81eb1852fc2460fff64bb1041d93c5ed5ff82c0b69376715394b99add3323428",
+      "row": 51303,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-3a13e6ff88e7a8c1b1b316efdb4bd84d9863f7e6a727966aa048ad12140cfb7e",
+      "row": 51312,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-44442768b6dbd8a07a8c01ff4a72b82541e3cb1b20a2c157c89d2f9f77297c4c",
+      "row": 51320,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-eeea2ecbe64f396f698e5bfa0491b82b05251f16ed7a1a2d485256c5fd4e46c1",
+      "row": 51328,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-1a20c35ce9815c82653a28d203448307947e013f96b88e9f424bc639ac4bddac",
+      "row": 51337,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-6dde1b89a06b125eaf8ecbfa8fa6811959a45ac15920508ece28be2c53bf53e7",
+      "row": 51349,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-58577130e7220b8fde6a8d60a20dd7ca93051fb9983edb64808f78065f9faefb",
+      "row": 51368,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-6866fea38ed1ffae00398b2e336cb3f034ee34ce4a241d287319c54bf6aea15a",
+      "row": 51376,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-be6b4105e311bf69f8a002a354f732a1cfd1081e73f6fd96f4fc67dbd0d04ad4",
+      "row": 51409,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-ccf7d8db65f2ab5a08128e164420e8576bc1c9a740f38338126b4738696f2428",
+      "row": 51429,
+      "length_stratum": "short"
+    },
+    {
+      "id": "fresh-7cc430bf340f6b6f2ff72b4ddab47bfc1bb4927192052e474bf57f0485721c26",
+      "row": 51440,
+      "length_stratum": "short"
+    }
+  ],
+  "prompts_sha256": "ee0bd595e426021e82952bf6b9a388dde96812d32124b1175d857d2eaca8f5f1"
+}

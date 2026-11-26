@@ -1,0 +1,66 @@
+{
+  "arms": {
+    "fixed": {
+      "objective": "F3",
+      "policy": {
+        "block_size": 32
+      },
+      "overrides": {
+        "data": {
+          "shuffle_seed": 319180585,
+          "random_length_ratio": 0
+        },
+        "optim": {
+          "warmdown_ratio": 0.1
+        },
+        "eval": {
+          "nelbo_tokens": 4194304
+        },
+        "train": {
+          "telemetry_interval_seconds": 0.0
+        }
+      }
+    },
+    "calibrated": {
+      "objective": "F4",
+      "policy": {
+        "block_size": 32,
+        "noise_intervals": [
+          [
+            0.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.3,
+            0.8
+          ],
+          [
+            0.5,
+            1.0
+          ]
+        ],
+        "noise_update_interval": 352,
+        "calibration_batch_count": 8
+      },
+      "overrides": {
+        "data": {
+          "shuffle_seed": 319180585,
+          "random_length_ratio": 0
+        },
+        "optim": {
+          "warmdown_ratio": 0.1
+        },
+        "eval": {
+          "nelbo_tokens": 4194304
+        },
+        "train": {
+          "telemetry_interval_seconds": 0.0
+        }
+      }
+    }
+  }
+}

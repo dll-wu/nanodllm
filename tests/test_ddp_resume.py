@@ -92,7 +92,7 @@ def _config(data_path: str, run_dir: Path) -> ExperimentConfig:
     )
 
 
-def _launch(config_path: Path) -> subprocess.CompletedProcess[str]:
+def _launch(config_path: Path, worker: Path = REPO / "pretrain.py") -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env.update(
         {
@@ -117,7 +117,7 @@ def _launch(config_path: Path) -> subprocess.CompletedProcess[str]:
             "--nproc-per-node=2",
             "--master-addr=127.0.0.1",
             f"--master-port={master_port}",
-            str(REPO / "pretrain.py"),
+            str(worker),
             "--config",
             str(config_path),
         ],
@@ -662,3 +662,33 @@ def test_cpu_gloo_uninterrupted_and_resumed_training_are_exact(tmp_path):
         assert resumed_record["lr"] == continuous_record["lr"]
         assert resumed_record["train_tokens"] == continuous_record["train_tokens"]
         assert resumed_record["train_valid_tokens"] == continuous_record["train_valid_tokens"]
+
+
+def test_asymmetric_then_globally_empty_update(tmp_path):
+    """An empty rank joins the first reduction; a fully empty step leaves AdamW state alone."""
+    run = tmp_path / "ddp"
+    config = _config(_write_rank_distinct_parquet(tmp_path / "rows.parquet"), run)
+    config.train.num_steps = 2
+    config.train.total_batch_size = 16
+    config.train.save_every = 1
+    path = tmp_path / "config.json"
+    path.write_text(json.dumps(to_dict(config)))
+    worker = tmp_path / "force_corruption.py"
+    worker.write_text(
+        "import torch\n"
+        "from nanodllm import training, cli\n"
+        "calls = 0\n"
+        "def forced(config, noise, clean, loss_mask):\n"
+        "    global calls\n"
+        "    calls += 1\n"
+        "    active = loss_mask.bool() if calls == 1 and torch.distributed.get_rank() == 1 else torch.zeros_like(loss_mask, dtype=torch.bool)\n"
+        "    return clean.masked_fill(active, noise.mask_token_id), active.float(), 0.5, None\n"
+        "training._corrupt_training_batch = forced\n"
+        "cli.main()\n"
+    )
+    result = _launch(path, worker)
+    assert result.returncode == 0, result.stderr[-4000:]
+    first, final = (torch.load(run / f, map_location="cpu", weights_only=False) for f in ("model_step1.pt", "model.pt"))
+    assert first["optimizer_state_dict"]["state"]
+    _assert_nested_equal(first["optimizer_state_dict"]["state"], final["optimizer_state_dict"]["state"])
+    _assert_nested_equal(first["model_state_dict"], final["model_state_dict"])

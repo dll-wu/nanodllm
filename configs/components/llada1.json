@@ -1,0 +1,19 @@
+{
+  "arms": {
+    "mdlm": {
+      "objective": "F1",
+      "policy": {
+        "block_size": 32
+      },
+      "overrides": {}
+    },
+    "masking": {
+      "objective": "F2",
+      "policy": {
+        "llada_time_epsilon": 0.001,
+        "variable_length_probability": 0.01
+      },
+      "overrides": {}
+    }
+  }
+}

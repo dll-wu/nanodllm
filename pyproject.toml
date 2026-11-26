@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nano-dllm"
-version = "0.1.0"
+version = "1.0.0rc1"
 description = "Research code for training masked discrete diffusion language models"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 authors = [
@@ -28,7 +28,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -53,13 +52,33 @@ dev = [
 
 [project.scripts]
 nanodllm-pretrain = "nanodllm.cli:main"
+nanodllm-paper-results = "paper_results.__main__:main"
+nanodllm-paper-components = "nanodllm.paper_components:main"
+nanodllm-paper-recipes = "nanodllm.paper_recipes:main"
+nanodllm-paper-eval = "nanodllm.paper_eval:main"
+nanodllm-paper-tasks = "nanodllm.paper_tasks:main"
+nanodllm-paper-generate = "nanodllm.paper_generation:main"
+nanodllm-export-weights = "nanodllm.paper_weights:main"
+nanodllm-paper-train = "nanodllm.paper_runtime.cli:main"
 
 [tool.setuptools]
-packages = ["nanodllm"]
+packages = ["nanodllm", "nanodllm.paper_runtime", "paper_results"]
 py-modules = ["pretrain"]
 include-package-data = false
 
+[tool.setuptools.package-data]
+"nanodllm.paper_runtime" = ["vendor/nanochat/LICENSE", "vendor/nanochat/nanochat/optim.py"]
+
+"paper_results" = ["data/*.json", "manifest.json", "templates/**/*.tex", "templates/*.tex"]
+
+[tool.setuptools.data-files]
+"share/nano-dllm/configs/components" = ["configs/components/*.json"]
+"share/nano-dllm/configs/paper" = ["configs/paper/*.json"]
+"share/nano-dllm/evaluation/panels" = ["evaluation/panels/*.json"]
+"share/nano-dllm/evaluation/tasks" = ["evaluation/tasks/*.json"]
+
 [tool.ruff]
+extend-exclude = ["nanodllm/paper_runtime/vendor"]
 target-version = "py310"
 line-length = 120
 src = ["nanodllm"]

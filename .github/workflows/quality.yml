@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.11", "3.12", "3.13"]
     env:
       CUDA_VISIBLE_DEVICES: ""
       HF_HUB_OFFLINE: "1"
@@ -104,100 +104,7 @@ jobs:
         run: twine check --strict dist/*
 
       - name: Verify distribution inventories
-        run: |
-          python - <<'PY'
-          from pathlib import Path, PurePosixPath
-          import tarfile
-          import zipfile
-
-          sdist, = Path("dist").glob("*.tar.gz")
-          wheel, = Path("dist").glob("*.whl")
-
-          with tarfile.open(sdist, "r:gz") as archive:
-              members = [PurePosixPath(name) for name in archive.getnames()]
-          roots = {path.parts[0] for path in members if path.parts}
-          assert len(roots) == 1, roots
-          source = {
-              PurePosixPath(*path.parts[1:]).as_posix()
-              for path in members
-              if len(path.parts) > 1
-          }
-          required_files = {
-              ".github/workflows/quality.yml",
-              "AGENTS.md",
-              "CITATION.cff",
-              "CONTRIBUTING.md",
-              "DESIGN_DECISIONS.md",
-              "LICENSE",
-              "MANIFEST.in",
-              "README.md",
-              "SECURITY.md",
-              "THIRD_PARTY_NOTICES.md",
-              "examples/tiny_corpus.txt",
-              "pretrain.py",
-              "pyproject.toml",
-          }
-          assert required_files <= source, sorted(required_files - source)
-          source_groups = {
-              "configs": "*.json",
-              "docs": "*.md",
-              "examples": "*.txt",
-              "nanodllm": "*.py",
-              "scripts": "*.py",
-              "tests": "*.py",
-          }
-          for directory, pattern in source_groups.items():
-              expected = {
-                  path.as_posix()
-                  for path in Path(directory).rglob(pattern)
-                  if path.is_file()
-              }
-              assert expected, (directory, pattern)
-              assert expected <= source, sorted(expected - source)
-
-          forbidden_parts = {
-              ".mypy_cache",
-              ".pytest_cache",
-              ".ruff_cache",
-              ".venv",
-              "__pycache__",
-              "build",
-              "data",
-              "dist",
-              "reports",
-              "results",
-              "runs",
-              "venv",
-          }
-          forbidden_source = sorted(
-              name
-              for name in source
-              if forbidden_parts.intersection(PurePosixPath(name).parts)
-          )
-          assert not forbidden_source, forbidden_source
-
-          with zipfile.ZipFile(wheel) as archive:
-              wheel_files = set(archive.namelist())
-          expected_wheel_code = {"pretrain.py"} | {
-              path.as_posix() for path in Path("nanodllm").rglob("*.py")
-          }
-          assert expected_wheel_code <= wheel_files, sorted(
-              expected_wheel_code - wheel_files
-          )
-          forbidden_wheel_prefixes = ("configs/", "docs/", "examples/", "scripts/", "tests/")
-          assert not any(
-              name.startswith(forbidden_wheel_prefixes) for name in wheel_files
-          ), sorted(wheel_files)
-          assert not {
-              "AGENTS.md",
-              "CITATION.cff",
-              "CONTRIBUTING.md",
-              "DESIGN_DECISIONS.md",
-              "README.md",
-              "SECURITY.md",
-              "THIRD_PARTY_NOTICES.md",
-          }.intersection(wheel_files)
-          PY
+        run: python scripts/check_release_dist.py dist
 
       - name: Verify wheel contents and entry point
         run: |
@@ -209,3 +116,6 @@ jobs:
         run: |
           python -c "import nanodllm; print(nanodllm.__file__)"
           nanodllm-pretrain --help
+          nanodllm-paper-recipes list --group tiny
+          nanodllm-paper-eval --help
+          python -m paper_results --check

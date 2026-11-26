@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use nano-dllm in research, please cite the software and the exact revision you used."
 title: "nano-dllm"
 type: software
-version: 0.1.0
+version: 1.0.0rc1
 authors:
   - name: "nano-dllm contributors"
 abstract: >-

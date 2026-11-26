@@ -1,0 +1,17 @@
+\begin{table*}[!t]
+\input{tables/final-model-rows}
+\centering\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{}lrlrrrrrr@{}}
+\toprule
+ & \multicolumn{1}{c}{21 tasks} & \multicolumn{7}{c}{Sampled continuations at block length 32} \\
+\cmidrule(lr){2-2}\cmidrule(l){3-9}
+Training recipe & Acc. (\%) & Decoder (cap) & Tokens/fwd & Tokens/s & Ref. PPL & Ref. BPB & Repeat-4 (\%) & EOS \\
+\midrule
+\exhibitrows
+\bottomrule
+\end{tabular}
+\caption{\textbf{Task accuracy and generation at 477M parameters.} Accuracy averages 21 separately scored tasks. Within each diffusion checkpoint, we time left-to-right decoding (top-$p=1$) and confidence-selected redrawing (top-$p=0.9$) on one A100-SXM4-80GB. Tokens/s averages per-request rates including cache work in BF16 autocast. Gemma 4 31B scores the continuations per token (PPL) and per byte (BPB). Repeat-4 averages the percentage of repeated four-grams per continuation. EOS counts stops before 256 tokens (32 prompts, two draws each).}
+\label{tab:final-models}
+\end{table*}

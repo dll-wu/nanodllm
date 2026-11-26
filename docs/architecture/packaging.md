@@ -1,14 +1,6 @@
 # Packaging
 
-The project uses a standard `pyproject.toml` build:
-
-- distribution: `nano-dllm`;
-- import package: `nanodllm`;
-- console command: `nanodllm-pretrain`; and
-- source-tree wrapper: `pretrain.py`.
-
-This is a source release. Example configs and scripts remain repository assets;
-they are not installed as package data. Always pass an explicit config path.
+The `nano-dllm` distribution installs the public training, scoring and checkpoint-export commands, plus the CPU-only `paper_results` module. Paper profiles and reference manifests are installed under `share/nano-dllm`. Numerical inputs and TeX templates travel inside `paper_results`. The source distribution also includes documentation, contributor materials, original tiny-text examples and tests.
 
 ## Install
 
@@ -42,8 +34,7 @@ Inspect the wheel rather than assuming source-only files were included:
 python -m zipfile --list dist/*.whl
 ```
 
-The public preview is not published to PyPI. A local wheel should still install
-cleanly and expose `nanodllm-pretrain --help`.
+Run `python scripts/check_release_dist.py dist` to compare the sdist and wheel inventories with the checkout. Test the installed wheel from another directory to ensure it can locate its paper assets.
 
 ## Quality Checks
 

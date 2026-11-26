@@ -1,0 +1,15 @@
+\begin{table*}[t]
+\input{tables/component-budget-rows}
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{}lllrrl@{}}
+\toprule
+Component & Matched control & Budget & $\Delta$ BPB & 95\% interval & Interpretation \\
+\midrule
+\exhibitrows
+\bottomrule
+\end{tabular}
+\caption{\textbf{Which published components improve next-token prediction at 20M parameters?} Negative differences favor the component. All pairs score the same 32 documents with masks to the block boundary. Intervals resample documents jointly across the two fitted seeds. TPP includes the AR parent when used. The two fixed-block controls differ in both trainer and attention within each clean 32-token block. The equal-token rows reuse the same Fast-v2 checkpoints. The final Fast-v2 row retains the block-causal control and matches estimated conversion FLOPs within 1\%.}
+\label{tab:component-budget}
+\end{table*}

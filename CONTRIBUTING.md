@@ -1,12 +1,12 @@
 # Contributing
 
-Thank you for helping improve nano-dllm. This is a research preview, so
+Thank you for helping improve nano-dllm. For research code,
 reproducibility, explicit assumptions, and narrowly scoped changes are
 especially valuable.
 
 ## Development setup
 
-Use Python 3.10 or newer in an isolated environment:
+Use Python 3.11 or newer in an isolated environment:
 
 ```bash
 python -m pip install -e ".[dev]"

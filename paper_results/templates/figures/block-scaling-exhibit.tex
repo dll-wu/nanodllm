@@ -1,0 +1,6 @@
+\begin{figure*}[!t]
+\centering
+\resizebox{\textwidth}{!}{\input{figures/transfer-effects}}
+\caption{\textbf{How do the fitted scratch and AR-initialized recipes compare?} Left of zero favors AR initialization at equal total tokens. In A, lines connect each full-sequence loss difference to zero (AdamW, one seed per endpoint). B and C show differences in next-token and reconstruction loss under Muon on development and held-out documents, respectively. The 59M points average three paired differences. D shows the pairs individually on both sets. The three seeds use distinct AR parents. Within each seed, both conversion learning rates start from the same parent. Whiskers in B--D give paired 95\% bootstrap intervals from resampling documents with checkpoints fixed. Absolute losses, including the AR parents, appear in Appendix Figures~\ref{fig:block-absolute} and~\ref{fig:scaling}.}
+\label{fig:block-scaling}
+\end{figure*}

@@ -1,0 +1,28 @@
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw=black!55, rounded corners=2pt, fill=black!3, text width=4.35cm, minimum height=1.45cm, align=center, inner sep=5pt, font=\footnotesize},
+  flow/.style={-{Stealth[length=2mm]}, thick, draw=black!70},
+  lab/.style={font=\footnotesize, fill=white, inner sep=2pt}
+]
+\node[box, text width=15.1cm, minimum height=0.65cm] (config) at (5.4,1.6) {\textbf{Resolved recipe and identities}\quad Data / backbone / objective / optimizer / runtime / evaluation};
+\node[box] (source) at (0,0) {\textbf{Document source + tokenizer}\\Parquet document streams\\Tokenization and data split\\Token and byte accounting};
+\node[box] (batch) at (5.4,0) {\textbf{Batch construction}\\Packing and segment IDs\\Validity and target masks\\Logical position IDs};
+\node[box] (objective) at (10.8,0) {\textbf{Objective adapter}\\Shifted or corrupted views\\Attention topology\\Targets and loss weights};
+\node[box] (artifacts) at (0,-2.55) {\textbf{Checkpoint + run artifacts}\\Weights; resumable state\\Configuration and lineage\\Scalar telemetry};
+\node[box] (trainer) at (5.4,-2.55) {\textbf{Training update}\\Loss and gradient reduction\\Accumulation / DDP\\Optimizer and LR schedule};
+\node[box] (model) at (10.8,-2.55) {\textbf{Shared Transformer}\\Token embeddings\\Attention and MLP blocks\\Vocabulary logits};
+\node[box, text width=15.1cm, minimum height=0.9cm] (eval) at (5.4,-5.0) {\textbf{Frozen-checkpoint evaluation}\quad Native prediction / common prediction / tasks / generation\\Saved per-example records $\longrightarrow$ uncertainty and aggregate tables; decoder traces $\longrightarrow$ work and timing};
+\draw[flow] (source) -- (batch);
+\draw[flow] (batch) -- (objective);
+\draw[flow] (objective) -- node[lab,right]{input + visibility} (model);
+\draw[flow,dashed] (objective.south west) -- node[lab,above,sloped]{targets / weights} (trainer.north);
+\draw[flow] (model.west) -- (trainer.east);
+\draw[flow] (trainer.south) -- ++(0,-0.62) -| (model.south);
+\node[lab] at (8.1,-3.72) {update weights};
+\draw[flow] (trainer) -- (artifacts);
+\draw[flow] (artifacts.south) -- (artifacts.south |- eval.north);
+\end{tikzpicture}
+\caption{\textbf{Platform interfaces.} The recipe configures the components; arrows show the main data and training flow. Objective adapters own visibility and supervision, while the shared backbone owns network computation. Evaluation reads a fixed checkpoint independently of the training loop. The diagram is an interface map, not a claim that every combination is supported.}
+\label{fig:platform-system}
+\end{figure*}

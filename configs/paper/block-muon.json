@@ -1,0 +1,771 @@
+{
+  "defaults": {
+    "model": {
+      "depth": 8,
+      "n_embd": 512,
+      "n_head": 8,
+      "max_seq_len": 1024,
+      "mlp_hidden_dim": 2048,
+      "bd3lm_block_size": 32,
+      "bd3lm_clean_stream_mode": "causal",
+      "causal": false,
+      "backbone_profile": "nanollada_v1"
+    },
+    "data": {
+      "tokenizer": "hf",
+      "val_fraction": 0,
+      "prepend_bos": true,
+      "append_eos": true,
+      "loss_on_bos": false,
+      "loss_on_eos": true,
+      "shuffle_seed": 319180586,
+      "content_budget_segmented_packing": true,
+      "bos_packing_mode": "bestfit_segmented",
+      "bos_packing_buffer_size": 1000,
+      "identity_mode": "metadata"
+    },
+    "noise": {
+      "type": "bd3lm",
+      "t_min": 0.001,
+      "t_max": 1,
+      "schedule_weight": true,
+      "mdlm_time_sampling": "legacy_auto",
+      "complement_masking": false
+    },
+    "optim": {
+      "type": "nanochat_muon",
+      "lr": 0.00175,
+      "weight_decay": 0.1,
+      "adam_beta1": 0.9,
+      "adam_beta2": 0.95,
+      "adam_eps": 1e-08,
+      "warmup_steps": -1,
+      "warmup_ratio": 0.05,
+      "warmdown_ratio": 0.3,
+      "final_lr_frac": 0,
+      "grad_clip": 0,
+      "nanochat_checkout": "",
+      "nanochat_embedding_lr": 0.12990381056766578,
+      "nanochat_head_lr": 0.003464101615137754,
+      "nanochat_execution_scope": "single_rank_causal_block_d8"
+    },
+    "parameterization": {
+      "mode": "ordinary",
+      "execution_scope": "ordinary",
+      "base_depth": 4,
+      "base_width": 256,
+      "contract_binding": "required",
+      "contract_sha256": "4b9fe77c848532bd9de501453d9848fae3b7207ff36bad6570a794ce6a931883"
+    },
+    "runtime": {
+      "device_type": "cuda",
+      "dtype": "bfloat16",
+      "seed": 50,
+      "model_seed": 50,
+      "training_seed": 50,
+      "compile": false,
+      "compile_dynamic": true,
+      "min_free_gpu_mib": 5120,
+      "float32_matmul_precision": "high",
+      "allow_tf32": true,
+      "cudnn_allow_tf32": true,
+      "deterministic_algorithms": true
+    },
+    "train": {
+      "num_steps": 4800,
+      "target_tokens": 1258291200,
+      "target_param_data_ratio": 30,
+      "target_param_count_basis": "nanochat_scaling_parameters",
+      "total_batch_size": 262144,
+      "device_batch_size": 16,
+      "base_total_batch_size": 131072,
+      "scale_lr_by_batch": false,
+      "log_interval": 20,
+      "tensorboard": false,
+      "save_every": 480,
+      "eval_every": -1,
+      "telemetry_interval_seconds": 5,
+      "bd3lm_partition_mode": "mixed",
+      "bd3lm_partition_lengths": [
+        8,
+        16,
+        32,
+        64
+      ],
+      "bd3lm_partition_seed": 20261152,
+      "divergence_check_interval": 10
+    },
+    "eval": {
+      "enabled": false,
+      "gen_eval": false,
+      "nelbo_tokens": 262144,
+      "nelbo_t_min": 0,
+      "nelbo_seed": 1527547018,
+      "fixed_ce_batches": 1,
+      "reconstruction_eval": false,
+      "gen_samples": 1,
+      "judge_model_id": "",
+      "conditional_rank_eval": false
+    },
+    "recipe": {
+      "status": "locked",
+      "locked_fields": [
+        "model",
+        "data",
+        "noise",
+        "optim",
+        "runtime",
+        "train",
+        "eval",
+        "parameterization"
+      ]
+    }
+  },
+  "profiles": {
+    "block-d4-parent-s48": {
+      "world_size": 1,
+      "checkpoint_sha256": "85558e8fb6157cadf75e7fd4238cf0851a360d55a64806dfdceaa61b376bdc87",
+      "checkpoint_bytes": 176341969,
+      "overrides": {
+        "model": {
+          "depth": 4,
+          "n_embd": 256,
+          "n_head": 4,
+          "mlp_hidden_dim": 1024,
+          "bd3lm_block_size": 0,
+          "bd3lm_clean_stream_mode": "block_causal",
+          "causal": true
+        },
+        "data": {
+          "shuffle_seed": 319180585
+        },
+        "noise": {
+          "type": "mdlm"
+        },
+        "optim": {
+          "lr": 0.014,
+          "nanochat_embedding_lr": 0.36742346141747667,
+          "nanochat_head_lr": 0.004898979485566356,
+          "nanochat_execution_scope": "single_rank"
+        },
+        "parameterization": {
+          "contract_sha256": "d337dff2ff95e14d77bc7966da91adf9cf9a37e944d36ea71404d2a1168a5f6c"
+        },
+        "runtime": {
+          "seed": 48,
+          "model_seed": 48,
+          "training_seed": 48,
+          "compile": true
+        },
+        "train": {
+          "num_steps": 1760,
+          "target_tokens": 115343360,
+          "target_param_data_ratio": 10,
+          "total_batch_size": 65536,
+          "save_every": 176,
+          "eval_every": 88,
+          "bd3lm_partition_mode": "fixed",
+          "bd3lm_partition_lengths": [],
+          "bd3lm_partition_seed": 0
+        },
+        "eval": {
+          "enabled": true
+        }
+      }
+    },
+    "block-d4-scratch-s48": {
+      "world_size": 1,
+      "checkpoint_sha256": "46630bf900e3c9716fb98f3783bd7f085b4bccca6cbc882e5dab2a0e585804c0",
+      "checkpoint_bytes": 176342161,
+      "overrides": {
+        "model": {
+          "depth": 4,
+          "n_embd": 256,
+          "n_head": 4,
+          "mlp_hidden_dim": 1024
+        },
+        "optim": {
+          "lr": 0.007,
+          "nanochat_embedding_lr": 0.18371173070873834,
+          "nanochat_head_lr": 0.004898979485566356,
+          "nanochat_execution_scope": "single_rank_causal_block_d4"
+        },
+        "parameterization": {
+          "contract_sha256": "544df43dac471d5af391d02a860458c2df60f00073c3517b2ced9893740e7ce8"
+        },
+        "runtime": {
+          "seed": 48,
+          "model_seed": 48,
+          "training_seed": 48
+        },
+        "train": {
+          "num_steps": 7040,
+          "target_tokens": 461373440,
+          "target_param_data_ratio": 40,
+          "total_batch_size": 65536,
+          "save_every": 704,
+          "bd3lm_partition_seed": 20261150
+        }
+      }
+    },
+    "block-d4-convert-s48": {
+      "world_size": 1,
+      "checkpoint_sha256": "8ccf33fda1626150a60ef3a880cc9be1b8740caab36757e7ce8af098b6e99620",
+      "checkpoint_bytes": 176342417,
+      "parent": "block-d4-parent-s48",
+      "overrides": {
+        "model": {
+          "depth": 4,
+          "n_embd": 256,
+          "n_head": 4,
+          "mlp_hidden_dim": 1024
+        },
+        "optim": {
+          "lr": 0.007,
+          "nanochat_embedding_lr": 0.18371173070873834,
+          "nanochat_head_lr": 0.004898979485566356,
+          "nanochat_execution_scope": "single_rank_causal_block_d4"
+        },
+        "parameterization": {
+          "contract_sha256": "544df43dac471d5af391d02a860458c2df60f00073c3517b2ced9893740e7ce8"
+        },
+        "runtime": {
+          "seed": 48,
+          "model_seed": 48,
+          "training_seed": 48
+        },
+        "train": {
+          "num_steps": 5280,
+          "target_tokens": 346030080,
+          "total_batch_size": 65536,
+          "save_every": 528,
+          "bd3lm_partition_seed": 20261150
+        }
+      }
+    },
+    "block-d8-parent-s50": {
+      "world_size": 1,
+      "checkpoint_sha256": "28831ed768b8dc6e3b634e324aab3e53782d92eb9e6ed48e021b2540b25a72e9",
+      "checkpoint_bytes": 503654793,
+      "overrides": {
+        "model": {
+          "bd3lm_block_size": 0,
+          "bd3lm_clean_stream_mode": "block_causal",
+          "causal": true
+        },
+        "data": {
+          "shuffle_seed": 319180585
+        },
+        "noise": {
+          "type": "mdlm"
+        },
+        "optim": {
+          "lr": 0.014,
+          "nanochat_embedding_lr": 0.25980762113533157,
+          "nanochat_execution_scope": "ddp_replicated_d4_d8"
+        },
+        "parameterization": {
+          "contract_sha256": "2ff94cfdae77249642ef0fa994717c8ea9a16f20f1ea76c9cdc47812bf5e77b3"
+        },
+        "runtime": {
+          "compile": true
+        },
+        "train": {
+          "num_steps": 6400,
+          "target_tokens": 419430400,
+          "target_param_data_ratio": 10,
+          "total_batch_size": 65536,
+          "save_every": 640,
+          "eval_every": 320,
+          "bd3lm_partition_mode": "fixed",
+          "bd3lm_partition_lengths": [],
+          "bd3lm_partition_seed": 0
+        },
+        "eval": {
+          "enabled": true
+        }
+      }
+    },
+    "block-d8-scratch-s50": {
+      "world_size": 1,
+      "checkpoint_sha256": "e36380285b11bf11fdc4e5005231f2d4b0e28297191bc20d9b39c17449d2f158",
+      "checkpoint_bytes": 503655049,
+      "overrides": {
+        "optim": {
+          "lr": 0.007
+        },
+        "parameterization": {
+          "contract_sha256": "d2ad0510e5a7591fc4217f86e085243b782158bc66c0a09ff6193a800304e7b8"
+        },
+        "train": {
+          "num_steps": 6400,
+          "target_tokens": 1677721600,
+          "target_param_data_ratio": 40,
+          "save_every": 640
+        }
+      }
+    },
+    "block-d8-convert-s50": {
+      "world_size": 1,
+      "checkpoint_sha256": "dadcfc3272f0424d90593e76e6e14bf3aa26bda408026c587f7516445d36ae1c",
+      "checkpoint_bytes": 503655241,
+      "parent": "block-d8-parent-s50",
+      "overrides": {}
+    },
+    "block-d12-parent-s50": {
+      "world_size": 4,
+      "checkpoint_sha256": "7325067da4eb144359e5197c0074a3da2376190d616ce45481fb605271dc400b",
+      "checkpoint_bytes": 1133242527,
+      "overrides": {
+        "model": {
+          "depth": 12,
+          "n_embd": 768,
+          "n_head": 12,
+          "mlp_hidden_dim": 3072,
+          "bd3lm_block_size": 0,
+          "bd3lm_clean_stream_mode": "block_causal",
+          "causal": true
+        },
+        "data": {
+          "shuffle_seed": 319180585
+        },
+        "noise": {
+          "type": "mdlm"
+        },
+        "optim": {
+          "lr": 0.014,
+          "nanochat_embedding_lr": 0.21213203435596426,
+          "nanochat_head_lr": 0.00282842712474619,
+          "nanochat_execution_scope": "ddp_replicated_plain_d12"
+        },
+        "parameterization": {
+          "contract_sha256": "6d48a10608aa18339ff4bae61e615046cb18cb6cb528f90bb765f7dfe8be613a"
+        },
+        "runtime": {
+          "compile": true
+        },
+        "train": {
+          "num_steps": 16800,
+          "target_tokens": 1101004800,
+          "target_param_data_ratio": 10.0,
+          "total_batch_size": 65536,
+          "save_every": 1680,
+          "eval_every": 840,
+          "bd3lm_partition_mode": "fixed",
+          "bd3lm_partition_lengths": [],
+          "bd3lm_partition_seed": 0
+        },
+        "eval": {
+          "enabled": true
+        }
+      }
+    },
+    "block-d12-scratch-s50": {
+      "world_size": 8,
+      "checkpoint_sha256": "e72c580b7b3bf5d2bc8177cf4b1bb63874a5669a62ff563ad28c21c7548268a5",
+      "checkpoint_bytes": 1133490311,
+      "overrides": {
+        "model": {
+          "depth": 12,
+          "n_embd": 768,
+          "n_head": 12,
+          "mlp_hidden_dim": 3072
+        },
+        "optim": {
+          "lr": 0.007,
+          "nanochat_embedding_lr": 0.10606601717798213,
+          "nanochat_head_lr": 0.00282842712474619,
+          "nanochat_execution_scope": "ddp_replicated_causal_block_d12"
+        },
+        "parameterization": {
+          "contract_sha256": "57909961d70ded326fa99ff7996ec2f6992ca1f9271373f405db2060b539af9a"
+        },
+        "runtime": {
+          "compile": true
+        },
+        "train": {
+          "num_steps": 16800,
+          "target_tokens": 4404019200,
+          "target_param_data_ratio": 40,
+          "save_every": 1000,
+          "eval_every": 840
+        }
+      }
+    },
+    "block-d12-convert-s50": {
+      "world_size": 8,
+      "checkpoint_sha256": "dc11720360419cb60cd3a3e3af002ed5c6873d984a257aa03d55ee8a17264395",
+      "checkpoint_bytes": 1133490503,
+      "parent": "block-d12-parent-s50",
+      "overrides": {
+        "model": {
+          "depth": 12,
+          "n_embd": 768,
+          "n_head": 12,
+          "mlp_hidden_dim": 3072
+        },
+        "optim": {
+          "nanochat_embedding_lr": 0.10606601717798213,
+          "nanochat_head_lr": 0.00282842712474619,
+          "nanochat_execution_scope": "ddp_replicated_causal_block_d12"
+        },
+        "parameterization": {
+          "contract_sha256": "41447b59bdf8ec123902bda3f68a45d347ee0f786f8ba79f29d24162959e9ea3"
+        },
+        "runtime": {
+          "compile": true
+        },
+        "train": {
+          "num_steps": 12600,
+          "target_tokens": 3303014400,
+          "save_every": 1000,
+          "eval_every": 630
+        }
+      }
+    },
+    "block-d20-parent-s50": {
+      "world_size": 8,
+      "checkpoint_sha256": "041119563bed2f9d677eae91504aff67db8571f8354a5ade9196b3ccfc7fee37",
+      "checkpoint_bytes": 3902535847,
+      "overrides": {
+        "model": {
+          "depth": 20,
+          "n_embd": 1280,
+          "n_head": 20,
+          "mlp_hidden_dim": 5120,
+          "bd3lm_block_size": 0,
+          "bd3lm_clean_stream_mode": "block_causal",
+          "causal": true
+        },
+        "data": {
+          "shuffle_seed": 319180585
+        },
+        "noise": {
+          "type": "mdlm"
+        },
+        "optim": {
+          "lr": 0.014,
+          "nanochat_embedding_lr": 0.1643167672515498,
+          "nanochat_head_lr": 0.002190890230020664,
+          "nanochat_execution_scope": "ddp_replicated_plain_d20"
+        },
+        "parameterization": {
+          "contract_sha256": "3b90a4f7e123d623ae0d9dc56be122384fb055a73099d5beac0147c4dac0f39a"
+        },
+        "runtime": {
+          "compile": true
+        },
+        "train": {
+          "num_steps": 66400,
+          "target_tokens": 4351590400,
+          "target_param_data_ratio": 10.0,
+          "total_batch_size": 65536,
+          "device_batch_size": 8,
+          "save_every": 6640,
+          "eval_every": 3320,
+          "bd3lm_partition_mode": "fixed",
+          "bd3lm_partition_lengths": [],
+          "bd3lm_partition_seed": 0
+        },
+        "eval": {
+          "enabled": true
+        }
+      }
+    },
+    "block-d20-scratch-s50": {
+      "world_size": 8,
+      "checkpoint_sha256": "5a6c9457ed33a5a1acc06449a9082a0a12616eb42e396db225752c5f9b3b04f3",
+      "checkpoint_bytes": 3902536487,
+      "overrides": {
+        "model": {
+          "depth": 20,
+          "n_embd": 1280,
+          "n_head": 20,
+          "mlp_hidden_dim": 5120
+        },
+        "optim": {
+          "lr": 0.007,
+          "nanochat_embedding_lr": 0.0821583836257749,
+          "nanochat_head_lr": 0.002190890230020664,
+          "nanochat_execution_scope": "ddp_replicated_causal_block_d20"
+        },
+        "parameterization": {
+          "contract_sha256": "fd35f8b3b8c9707c68b14afc536632da0f61b2d3a877884557fba312701ce149"
+        },
+        "runtime": {
+          "compile": true
+        },
+        "train": {
+          "num_steps": 66400,
+          "target_tokens": 17406361600,
+          "target_param_data_ratio": 40,
+          "save_every": 1000,
+          "eval_every": 3320
+        }
+      }
+    },
+    "block-d20-convert-s50": {
+      "world_size": 8,
+      "checkpoint_sha256": "a6b2b987b89c5d9b88c7e469e5a1c75a5fd09991f486bc666d3dadfaa60c6e42",
+      "checkpoint_bytes": 3902536615,
+      "parent": "block-d20-parent-s50",
+      "overrides": {
+        "model": {
+          "depth": 20,
+          "n_embd": 1280,
+          "n_head": 20,
+          "mlp_hidden_dim": 5120
+        },
+        "optim": {
+          "nanochat_embedding_lr": 0.0821583836257749,
+          "nanochat_head_lr": 0.002190890230020664,
+          "nanochat_execution_scope": "ddp_replicated_causal_block_d20"
+        },
+        "parameterization": {
+          "contract_sha256": "d8e26e043468d08a29976cca335f533f265defa6624bb8b19e59a4b05b7b69bd"
+        },
+        "runtime": {
+          "compile": true
+        },
+        "train": {
+          "num_steps": 49800,
+          "target_tokens": 13054771200,
+          "save_every": 1000,
+          "eval_every": 2490
+        }
+      }
+    },
+    "block-d8-parent-s51": {
+      "world_size": 1,
+      "checkpoint_sha256": "be1b2e4a5081cc30bd096a8bb087f4783af3857ca70bb1fb7b8606bdc2ae2dd8",
+      "checkpoint_bytes": 503654793,
+      "overrides": {
+        "model": {
+          "bd3lm_block_size": 0,
+          "bd3lm_clean_stream_mode": "block_causal",
+          "causal": true
+        },
+        "data": {
+          "shuffle_seed": 319180585
+        },
+        "noise": {
+          "type": "mdlm"
+        },
+        "optim": {
+          "lr": 0.014,
+          "nanochat_embedding_lr": 0.25980762113533157,
+          "nanochat_execution_scope": "ddp_replicated_d4_d8"
+        },
+        "parameterization": {
+          "contract_sha256": "2ff94cfdae77249642ef0fa994717c8ea9a16f20f1ea76c9cdc47812bf5e77b3"
+        },
+        "runtime": {
+          "seed": 51,
+          "model_seed": 51,
+          "training_seed": 51,
+          "compile": true
+        },
+        "train": {
+          "num_steps": 6400,
+          "target_tokens": 419430400,
+          "target_param_data_ratio": 10,
+          "total_batch_size": 65536,
+          "save_every": 640,
+          "eval_every": 320,
+          "bd3lm_partition_mode": "fixed",
+          "bd3lm_partition_lengths": [],
+          "bd3lm_partition_seed": 0
+        },
+        "eval": {
+          "enabled": true
+        }
+      }
+    },
+    "block-d8-convert-s51": {
+      "world_size": 1,
+      "checkpoint_sha256": "c18ef49a7f0c4735e87a342606def6f1929e482ef8930ce61fd277ac98560cd2",
+      "checkpoint_bytes": 503655241,
+      "parent": "block-d8-parent-s51",
+      "overrides": {
+        "runtime": {
+          "seed": 51,
+          "model_seed": 51,
+          "training_seed": 51
+        },
+        "train": {
+          "bd3lm_partition_seed": 20261153
+        }
+      }
+    },
+    "block-d8-convert-alt-s51": {
+      "world_size": 1,
+      "checkpoint_sha256": "f925551c3ba75773a6484dbe4608da9d1d85f159f4704723246bcfbf37130d22",
+      "checkpoint_bytes": 503655241,
+      "parent": "block-d8-parent-s51",
+      "overrides": {
+        "optim": {
+          "lr": 0.0035
+        },
+        "parameterization": {
+          "contract_sha256": "50fd636065e5c7ae3241ea5b5a2876b8bae9e6553da202f1068f17a215c09ee0"
+        },
+        "runtime": {
+          "seed": 51,
+          "model_seed": 51,
+          "training_seed": 51
+        },
+        "train": {
+          "bd3lm_partition_seed": 20261153
+        }
+      }
+    },
+    "block-d8-scratch-s51": {
+      "world_size": 1,
+      "checkpoint_sha256": "ff82e9d0f51dd607410ed2973305ba33ff65d6d2ccb199b0d4f7e33106d0b135",
+      "checkpoint_bytes": 503654985,
+      "overrides": {
+        "optim": {
+          "lr": 0.007
+        },
+        "parameterization": {
+          "contract_sha256": "d2ad0510e5a7591fc4217f86e085243b782158bc66c0a09ff6193a800304e7b8"
+        },
+        "runtime": {
+          "seed": 51,
+          "model_seed": 51,
+          "training_seed": 51
+        },
+        "train": {
+          "num_steps": 6400,
+          "target_tokens": 1677721600,
+          "target_param_data_ratio": 40,
+          "save_every": 640,
+          "bd3lm_partition_seed": 20261153
+        }
+      }
+    },
+    "block-d8-parent-s52": {
+      "world_size": 1,
+      "checkpoint_sha256": "2693e44faa984e6dae3411021ef1f21b7c1d13313b15b6fc41b7b245a1e107bf",
+      "checkpoint_bytes": 503654793,
+      "overrides": {
+        "model": {
+          "bd3lm_block_size": 0,
+          "bd3lm_clean_stream_mode": "block_causal",
+          "causal": true
+        },
+        "data": {
+          "shuffle_seed": 319180585
+        },
+        "noise": {
+          "type": "mdlm"
+        },
+        "optim": {
+          "lr": 0.014,
+          "nanochat_embedding_lr": 0.25980762113533157,
+          "nanochat_execution_scope": "ddp_replicated_d4_d8"
+        },
+        "parameterization": {
+          "contract_sha256": "2ff94cfdae77249642ef0fa994717c8ea9a16f20f1ea76c9cdc47812bf5e77b3"
+        },
+        "runtime": {
+          "seed": 52,
+          "model_seed": 52,
+          "training_seed": 52,
+          "compile": true
+        },
+        "train": {
+          "num_steps": 6400,
+          "target_tokens": 419430400,
+          "target_param_data_ratio": 10,
+          "total_batch_size": 65536,
+          "save_every": 640,
+          "eval_every": 320,
+          "bd3lm_partition_mode": "fixed",
+          "bd3lm_partition_lengths": [],
+          "bd3lm_partition_seed": 0
+        },
+        "eval": {
+          "enabled": true
+        }
+      }
+    },
+    "block-d8-convert-s52": {
+      "world_size": 1,
+      "checkpoint_sha256": "2c46a3fc45b3da7c69c1c8f9a934d4017ec36628a1e598aff050e5951dd14510",
+      "checkpoint_bytes": 503655241,
+      "parent": "block-d8-parent-s52",
+      "overrides": {
+        "runtime": {
+          "seed": 52,
+          "model_seed": 52,
+          "training_seed": 52
+        },
+        "train": {
+          "bd3lm_partition_seed": 20261154
+        }
+      }
+    },
+    "block-d8-convert-alt-s52": {
+      "world_size": 1,
+      "checkpoint_sha256": "aeb4528c1052166500f23fdc5ef888c211162060012561e1a61a4ff80bf099d2",
+      "checkpoint_bytes": 503655241,
+      "parent": "block-d8-parent-s52",
+      "overrides": {
+        "optim": {
+          "lr": 0.0035
+        },
+        "parameterization": {
+          "contract_sha256": "50fd636065e5c7ae3241ea5b5a2876b8bae9e6553da202f1068f17a215c09ee0"
+        },
+        "runtime": {
+          "seed": 52,
+          "model_seed": 52,
+          "training_seed": 52
+        },
+        "train": {
+          "bd3lm_partition_seed": 20261154
+        }
+      }
+    },
+    "block-d8-scratch-s52": {
+      "world_size": 1,
+      "checkpoint_sha256": "7d85ce85753c0e6d45e3845418163f40bbfa7225fa7cf1c56ff704570f936cc6",
+      "checkpoint_bytes": 503654985,
+      "overrides": {
+        "optim": {
+          "lr": 0.007
+        },
+        "parameterization": {
+          "contract_sha256": "d2ad0510e5a7591fc4217f86e085243b782158bc66c0a09ff6193a800304e7b8"
+        },
+        "runtime": {
+          "seed": 52,
+          "model_seed": 52,
+          "training_seed": 52
+        },
+        "train": {
+          "num_steps": 6400,
+          "target_tokens": 1677721600,
+          "target_param_data_ratio": 40,
+          "save_every": 640,
+          "bd3lm_partition_seed": 20261154
+        }
+      }
+    },
+    "block-d8-convert-alt-s50": {
+      "world_size": 1,
+      "checkpoint_sha256": "8d3ad12a92093d7705ed0b97d4a6b41b5eff9418dbc621deca2741d35f6546b5",
+      "checkpoint_bytes": 503655241,
+      "parent": "block-d8-parent-s50",
+      "overrides": {
+        "optim": {
+          "lr": 0.0035
+        },
+        "parameterization": {
+          "contract_sha256": "50fd636065e5c7ae3241ea5b5a2876b8bae9e6553da202f1068f17a215c09ee0"
+        }
+      }
+    }
+  }
+}

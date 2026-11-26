@@ -1,0 +1,71 @@
+{
+  "study-design": [
+    [
+      "Baseline development",
+      "20M, with a separate 37M backbone variant. Scratch budgets extend to 160 TPP.",
+      "Full-sequence reconstruction on 1,680 document starts."
+    ],
+    [
+      "Published components",
+      "Matched 20M candidate and control. Each conversion pair shares an AR parent within a seed.",
+      "Next-token prediction with the same input canvas, and reconstruction under each model's trained attention pattern where available."
+    ],
+    [
+      "Full-sequence transfer",
+      "Six sizes, 20M--477M. Scratch 40 versus AR 20 + diffusion 20, using AdamW.",
+      "Full-sequence diffusion bound on 1,024 packed validation rows."
+    ],
+    [
+      "Block transfer",
+      "Four sizes, 20M--477M. Scratch 40 versus AR 10 + diffusion 30, using Muon.",
+      "Next-token prediction and reconstruction on the same documents. At 135M and 477M we also compare task accuracy and sampled continuations."
+    ]
+  ],
+  "replication-coverage": [
+    [
+      "LLaDA 1",
+      "Compared with scratch MDLM, sample mask rates independently across rows, raise the lower bound from 0 to 0.001, randomly crop the batch with 1\\% probability, and include MASK in the training softmax. Both arms use inverse-time weighting.",
+      "At 20 TPP the next-token loss difference was $+0.009$ BPB. The document interval includes zero."
+    ],
+    [
+      "LLaDA 1.5",
+      "Compare preference-loss estimators on the same 32 fixed preference pairs.",
+      "Sharing noise between policy and reference reduced estimator variance. We did not train a preference-optimized model."
+    ],
+    [
+      "LLaDA 2.0",
+      "Grow block length from 1 to 1,024, hold there, then shrink to 32. Compare with fixed length 32. Both receive AR10, 28 TPP of conversion and a final 2 TPP at length 32.",
+      "The curriculum raised next-token loss in both seeds. Mean conversion time fell from 52.4 to 40.7 minutes."
+    ],
+    [
+      "LLaDA 2.1",
+      "Train a model to replace visible tokens as well as fill masks. Test repairs against the original text and test whether clean drafts survive.",
+      "Repair improved on familiar grounded formats. Transfer to ordinary text remained weak."
+    ],
+    [
+      "LLaDA 2.2",
+      "Reconstruct delete/merge-style edits and compare with positional repair using the same action vocabulary.",
+      "General structural repair remained weak. Unspecified training choices limit fidelity to the published system."
+    ],
+    [
+      "BD3-LM",
+      "Compare block-noise calibration with a fixed mask-probability range at 20 TPP.",
+      "Calibration lowered next-token loss with masks to the block end. Using one mask reversed the ranking in both seeds."
+    ],
+    [
+      "Fast-dLLM-v2",
+      "Compare two complementary, block-aligned masked views and shifted targets with fixed-block conversion from the same AR10 parent.",
+      "Lower next-token loss at equal source tokens. The smaller difference at matched estimated compute has an interval spanning zero."
+    ],
+    [
+      "Adaptive Block Diffusion \\citep{jain2026adaptive}",
+      "Compare variable partitions with fixed blocks after MDLM initialization.",
+      "The ordering differed between next-token prediction and reconstruction."
+    ],
+    [
+      "WeDLM",
+      "Compare reordered attention with a bidirectional-current-block control.",
+      "Next-token loss favored reordering in a single-seed screen. Serving performance was outside this test."
+    ]
+  ]
+}

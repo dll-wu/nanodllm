@@ -1,0 +1,24 @@
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw=black!55, rounded corners=2pt, text width=4.35cm, minimum height=1.35cm, align=center, inner sep=5pt, font=\footnotesize},
+  flow/.style={-{Stealth[length=2mm]}, thick, draw=black!70},
+  lab/.style={font=\footnotesize, fill=white, inner sep=2pt}
+]
+\node[box,fill=blue!5] (cache) at (0,0) {\textbf{Clean causal prefix cache}\\Stable per-layer keys and values\\No active-block denoising states};
+\node[box,fill=orange!7] (active) at (5.4,0) {\textbf{Active block forward}\\Bidirectional active block\\Attends to the clean prefix\\Recompute every pass};
+\node[box,fill=orange!7] (sample) at (10.8,0) {\textbf{Propose and commit}\\Sample vocabulary tokens\\Apply the selected commitment policy};
+\node[box,fill=blue!5] (append) at (0,-2.5) {\textbf{Clean causal append}\\Recompute committed tokens\\with causal visibility\\Extend the prefix cache};
+\node[box,fill=black!3] (final) at (5.4,-2.5) {\textbf{Resolved block}\\All positions committed\\Check EOS and output cap};
+\node[box,fill=black!3] (stop) at (10.8,-2.5) {\textbf{Return output}\\EOS: discard block tail\\Cap: return completed output\\Skip terminal cache append};
+\draw[flow] (cache) -- (active);
+\draw[flow] (active) -- (sample);
+\draw[flow] (sample.north) -- ++(0,0.65) -| node[lab,pos=0.45,above]{unresolved positions: repeat} (active.north);
+\draw[flow] (sample.south) -- ++(0,-0.48) -| node[lab,pos=0.45,above]{block complete} (final.north);
+\draw[flow] (final.south west) -- ++(-0.25,-0.5) -| node[lab,pos=0.4,below]{another block needed} (append.south);
+\draw[flow] (append) -- node[lab,left]{next block} (cache);
+\draw[flow] (final.south east) -- ++(0.25,-0.5) -| node[lab,pos=0.4,below]{EOS / cap} (stop.south);
+\end{tikzpicture}
+\caption{\textbf{Flexible block generation with causal-prefix reuse.} Blue boxes contain clean reusable state; orange boxes contain temporary denoising state. The active block can change length between iterations of the outer loop. Only a clean causal append creates entries for future blocks; the final denoising pass cannot be cached directly. Prefix prefill occurs once before this loop.}
+\label{fig:block-cache}
+\end{figure*}

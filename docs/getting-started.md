@@ -1,11 +1,13 @@
 # Getting Started
 
+This guide covers the original preview trainer. For the paper trainer and selected recipes see [training recipes](paper-recipes.md).
+
 This guide takes a fresh source checkout through a portable CPU run, then shows
 how to point the same trainer at a real Parquet corpus.
 
 ## 1. Create An Environment
 
-Python 3.10 or newer is required.
+Python 3.11 or newer is required.
 
 ```bash
 python -m venv .venv

@@ -1,0 +1,13 @@
+\begin{table*}[t]
+\input{tables/model-size-rows}
+\centering\small
+\begin{tabular}{@{}rrrr@{}}
+\toprule
+Layers & Width & Total parameters (M) & Counted parameters $N_b$ (M) \\
+\midrule
+\exhibitrows
+\bottomrule
+\end{tabular}
+\caption{Plain backbone sizes. A stage with budget $h$ TPP receives $hN_b$ allocated source tokens.}
+\label{tab:model-sizes}
+\end{table*}

@@ -1,0 +1,41 @@
+\begin{tikzpicture}[font=\small, next/.style={blue!75!black}, recon/.style={teal!75!black}]
+\input{figures/transfer-marks}
+\def\axes{
+  \foreach \tick/\labeltext in {-.08/-.08,-.04/-.04,0/0,.02/+.02}{
+    \draw[black!13] (\tick,-.20)--(\tick,2.80);
+    \node[below,font=\footnotesize] at (\tick,-.20) {$\labeltext$};}
+  \draw[black!55] (0,-.20)--(0,2.80);}
+\def\rowname#1#2{\node[anchor=east,font=\footnotesize] at (-.083,{2.60-.48*#1}) {#2};}
+\def\fullmark#1#2{
+  \draw[black!35] (#2,{2.60-.48*#1})--(0,{2.60-.48*#1});
+  \node[diamond,fill=black!70,inner sep=1.65pt] at (#2,{2.60-.48*#1}) {};}
+\def\nexttokenmean#1#2{\fill[next] (#2,{2.69-.48*#1}) circle[radius=2pt];}
+\def\reconstructmean#1#2{\node[rectangle,draw=teal!75!black,fill=white,inner sep=1.65pt] at (#2,{2.51-.48*#1}) {};}
+\def\nexttoken#1#2#3#4{\draw[next,line width=.8pt] (#3,{2.69-.48*#1})--(#4,{2.69-.48*#1});\nexttokenmean{#1}{#2}}
+\def\reconstruct#1#2#3#4{\draw[recon,line width=.8pt] (#3,{2.51-.48*#1})--(#4,{2.51-.48*#1});\reconstructmean{#1}{#2}}
+\foreach \xx/\yy/\titletext/\subtitle/\marks in {
+  0/4.70/A. Full-sequence diffusion/50\% of training tokens allocated to AR/Full,
+  8.0/4.70/B. Block diffusion by size/25\% AR · 32 development documents/Development,
+  0/0/C. Block diffusion by size/25\% AR · 256 held-out documents/Holdout,
+  8.0/0/D. Training seeds at 59M/Each row compares a matched pair of checkpoints/Seeds}{
+  \begin{scope}[xshift=\xx cm,yshift=\yy cm,x=49cm,y=1cm]
+    \node[anchor=west,font=\bfseries] at (-.105,3.69) {\titletext};
+    \node[anchor=west,font=\footnotesize] at (-.105,3.23) {\subtitle};
+    \axes
+    \csname plot\marks\endcsname
+  \end{scope}}
+\begin{scope}[xshift=8cm,x=49cm]
+  \node[anchor=east,font=\footnotesize] at (-.092,2.12) {Dev.};
+  \node[anchor=east,font=\footnotesize] at (-.092,.44) {Holdout};
+  \draw[black!22] (-.095,1.30)--(.024,1.30);
+\end{scope}
+\node at (2.10,-.97) {Change in bits per byte (AR-initialized minus scratch)};
+\begin{scope}[yshift=-1.55cm]
+  \node[diamond,fill=black!70,inner sep=1.65pt] at (-3.30,0) {};
+  \node[right] at (-3.19,0) {Full-sequence bound};
+  \fill[next] (1.02,0) circle[radius=2pt];
+  \node[right] at (1.13,0) {Next token};
+  \node[draw=teal!75!black,fill=white,inner sep=1.65pt] at (4.35,0) {};
+  \node[right] at (4.46,0) {Block reconstruction};
+\end{scope}
+\end{tikzpicture}

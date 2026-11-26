@@ -1,0 +1,17 @@
+{
+  "defaults": {
+    "model": {"depth": 2, "n_embd": 64, "n_head": 4, "mlp_hidden_dim": 256, "max_seq_len": 128, "backbone_profile": "nanollada_v1"},
+    "data": {"tokenizer": "byte", "tokenizer_path": "", "val_fraction": 0.25, "tokenizer_batch_size": 8, "prepend_bos": true, "loss_on_bos": false, "append_eos": true, "loss_on_eos": true, "content_budget_segmented_packing": true, "bos_packing_mode": "bestfit_segmented", "bos_packing_buffer_size": 8, "random_length_ratio": 0, "continuation_ratio": 0, "identity_mode": "metadata"},
+    "noise": {"type": "mdlm", "t_min": 0.001, "t_max": 1, "complement_masking": false, "schedule_weight": true, "mdlm_time_sampling": "legacy_auto"},
+    "optim": {"type": "adamw", "lr": 0.001, "warmup_steps": 0, "warmdown_ratio": 0, "nanochat_checkout": ""},
+    "runtime": {"device_type": "cpu", "dtype": "float32", "compile": false, "model_seed": 47, "training_seed": 47, "seed": 47},
+    "train": {"device_batch_size": 1, "total_batch_size": 128, "base_total_batch_size": 128, "scale_lr_by_batch": false, "num_steps": 2, "save_every": 2, "log_interval": 1, "tensorboard": false},
+    "eval": {"enabled": false, "gen_eval": false, "judge_model_id": ""},
+    "recipe": {"status": "provisional", "provisional_fields": ["train.num_steps"]}
+  },
+  "profiles": {
+    "tiny-ar": {"world_size": 1, "overrides": {"model": {"causal": true}}},
+    "tiny-scratch": {"world_size": 1, "overrides": {"train": {"num_steps": 4}}},
+    "tiny-convert": {"world_size": 1, "parent": "tiny-ar", "overrides": {"data": {"shuffle_seed": 1338}}}
+  }
+}

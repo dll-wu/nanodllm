@@ -1,0 +1,6 @@
+\begin{figure*}[t]
+\centering
+\resizebox{\textwidth}{!}{\input{figures/block-scaling}}
+\caption{\textbf{AR pretraining for block diffusion at four model sizes.} Circles show block diffusion trained from scratch for 40 tokens per counted parameter. Squares show the same total budget split between AR pretraining (10) and block diffusion (30). Diamonds show the AR parent at the end of its 10-token budget. The left panel scores the next gold token given its prefix. The right panel scores reconstruction of partially masked blocks. Both use the same 32 documents and lower BPB is better. Diffusion points at 59M average three child-training seeds. All other points represent one checkpoint each. Figure~\ref{fig:block-scaling} reports the paired differences.}
+\label{fig:block-absolute}
+\end{figure*}

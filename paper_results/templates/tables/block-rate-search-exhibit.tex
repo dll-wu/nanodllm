@@ -1,0 +1,14 @@
+\begin{table*}[t]
+\input{tables/block-rate-rows}
+\centering\small
+\begin{tabular}{@{}lrcccc@{}}\toprule
+& Source tokens & \multicolumn{4}{c}{Peak matrix learning rate} \\
+\cmidrule(l){3-6}
+Training recipe & per update & 0.00175 & 0.0035 & 0.007 & 0.014 \\
+\midrule
+\exhibitrows
+\bottomrule
+\end{tabular}
+\caption{All 59M discovery settings (seed 50). Each cell gives next-token BPB / reconstruction BPB on the same 32 development documents. Dashes mark untested cells. For conversion the lowest next-token loss occurs at the smallest tested rate and largest batch. For scratch the best rate falls inside the tested range.}
+\label{tab:block-rate-search}
+\end{table*}

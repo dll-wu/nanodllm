@@ -70,6 +70,8 @@ from .sampling import (
     sample_remdm,
     sample_uniform,
 )
+from .source_provenance import _live_source_provenance as _live_source_provenance
+from .source_provenance import source_provenance_metrics
 from .telemetry import (
     append_jsonl,
     close_tensorboard_writer,
@@ -85,6 +87,8 @@ from .telemetry import (
 from .telemetry import (
     write_tensorboard_scalars as _write_tensorboard_scalars,
 )
+from .training_checkpoint_paths import _resolve_resume_path
+from .training_collectives import _empty_target_model_output_zero, _graph_connected_zero, synchronize_probe_failure
 
 TOP1_PROB_HIST_BINS = 10
 LOGIT_SCALE_HIST_BINS = 16
@@ -106,7 +110,7 @@ NUMERIC_RUNTIME_TELEMETRY_ATTR = "_nanodllm_numeric_runtime_telemetry"
 RESUME_CONTRACT_VERSION = 1
 RESUME_BATCH_DIGEST_VERSION = 1
 RESUME_RNG_STATE_VERSION = 1
-RESUME_TRAINER_STATE_VERSION = 1
+RESUME_TRAINER_STATE_VERSION = 2
 RESUME_TRAJECTORY_VERSION = 1
 RESUME_TRAINER_GROUP_FIELDS = {
     "lineage": (
@@ -137,6 +141,7 @@ RESUME_TRAINER_GROUP_FIELDS = {
         "grad_clip_observed_steps",
     ),
     "interval": (
+        "lossable_tokens",
         "smooth_loss",
         "smooth_count",
         "m2t_ce_sum",
@@ -1153,102 +1158,6 @@ def _prepare_data_identity(
         "artifact": artifact_name,
         "identity_sha256": digest,
         "identity_sha256_strength": str(record["hashes"]["identity_sha256_strength"]),
-    }
-
-
-def _live_source_provenance() -> dict[str, bool | int | None | str]:
-    """Inspect Git metadata when this module comes directly from its checkout."""
-
-    unavailable: dict[str, bool | int | None | str] = {
-        "source_repository_detected": False,
-        "source_git_status_available": False,
-        "source_git_commit": "",
-        "source_tracked_worktree_clean": None,
-        "source_untracked_path_count": 0,
-    }
-    try:
-        import subprocess
-
-        source_path = Path(__file__).resolve()
-        repo_hint = source_path.parents[1]
-        repo_root = subprocess.run(
-            [
-                "git",
-                "-c",
-                f"safe.directory={repo_hint}",
-                "-C",
-                str(repo_hint),
-                "rev-parse",
-                "--show-toplevel",
-            ],
-            capture_output=True,
-            text=True,
-        )
-        if repo_root.returncode != 0:
-            return unavailable
-
-        repo_root_path = Path(repo_root.stdout.strip()).resolve()
-        if (repo_root_path / "nanodllm" / "training.py").resolve() != source_path:
-            return unavailable
-
-        commit = subprocess.run(
-            ["git", "-c", f"safe.directory={repo_root_path}", "rev-parse", "HEAD"],
-            capture_output=True,
-            text=True,
-            cwd=repo_root_path,
-        )
-        status = subprocess.run(
-            ["git", "-c", f"safe.directory={repo_root_path}", "status", "--porcelain"],
-            capture_output=True,
-            text=True,
-            cwd=repo_root_path,
-        )
-        if status.returncode != 0:
-            return {
-                **unavailable,
-                "source_repository_detected": True,
-                "source_git_commit": commit.stdout.strip() if commit.returncode == 0 else "",
-            }
-
-        lines = [line for line in status.stdout.splitlines() if line.strip()]
-        tracked_dirty = any(not line.startswith("?? ") for line in lines)
-        untracked_path_count = sum(1 for line in lines if line.startswith("?? "))
-        return {
-            "source_repository_detected": True,
-            "source_git_status_available": True,
-            "source_git_commit": commit.stdout.strip() if commit.returncode == 0 else "",
-            "source_tracked_worktree_clean": not tracked_dirty,
-            "source_untracked_path_count": untracked_path_count,
-        }
-    except Exception:
-        return unavailable
-
-
-def source_provenance_metrics() -> dict[str, bool | int | None | list[str] | str]:
-    """Return informational source facts that never gate an otherwise successful run."""
-
-    provenance = _live_source_provenance()
-    repository_detected = bool(provenance["source_repository_detected"])
-    status_available = bool(provenance["source_git_status_available"])
-    tracked_clean = provenance["source_tracked_worktree_clean"]
-    untracked_path_count = int(provenance["source_untracked_path_count"])
-    warnings: list[str] = []
-    if not repository_detected:
-        warnings.append("Git checkout metadata is unavailable; this may be an installed distribution")
-    elif not status_available:
-        warnings.append("Git checkout detected, but worktree status could not be inspected")
-    else:
-        if tracked_clean is False:
-            warnings.append("Git checkout contains tracked modifications")
-        if untracked_path_count:
-            warnings.append("Git checkout contains untracked paths")
-    worktree_dirty = None if not status_available else tracked_clean is False or untracked_path_count > 0
-    return {
-        "status": "ok",
-        **provenance,
-        "source_worktree_dirty": worktree_dirty,
-        "source_provenance_is_informational": True,
-        "source_provenance_warnings": warnings,
     }
 
 
@@ -2980,6 +2889,9 @@ def _validate_trainer_state_schema(state: dict[str, object], config: ExperimentC
         name: _require_exact_mapping_keys(root[name], set(fields), field=f"trainer_state.{name}")
         for name, fields in RESUME_TRAINER_GROUP_FIELDS.items()
     }
+    denominator = groups["interval"]["lossable_tokens"]
+    if type(denominator) is not int or denominator < 0:
+        raise ValueError("trainer_state.interval.lossable_tokens must be a nonnegative integer")
     lineage = groups["lineage"]
     last = groups["last"]
     diagnostics = groups["diagnostics"]
@@ -3418,6 +3330,14 @@ def _load_resume_contract_local(
     _validate_active_rank_rng_topology(local_rng_state, config, device)
     if not isinstance(local_trainer_state, dict):
         raise RuntimeError(f"checkpoint has no trainer state for rank {rank}")
+    if local_trainer_state.get("version") == 1:
+        # v1 never retained a denominator for the unfinished reporting interval.
+        # Validate its original ledger shape before beginning a fresh interval.
+        previous = local_trainer_state.get("interval")
+        legacy_fields = set(RESUME_TRAINER_GROUP_FIELDS["interval"]) - {"lossable_tokens"}
+        _require_exact_mapping_keys(previous, legacy_fields, field="trainer_state.interval")
+        interval = {key: (previous[key] if key in {"smooth_loss", "smooth_count"} else 0) for key in legacy_fields}
+        local_trainer_state = {**local_trainer_state, "version": 2, "interval": {**interval, "lossable_tokens": 0}}
     _validate_trainer_state_schema(local_trainer_state, config)
     if not isinstance(expected_batch_digests, dict):
         raise RuntimeError(f"checkpoint has no next-batch digest for rank {rank}")
@@ -3606,29 +3526,6 @@ def alias_checkpoint(source_path: str, alias_path: str) -> None:
         except OSError:
             shutil.copy2(source_path, tmp_path)
     os.replace(tmp_path, alias_path)
-
-
-def _resolve_resume_path(run_dir: str, resume_from: str) -> str | None:
-    if not resume_from:
-        return None
-    if resume_from == "latest":
-        candidates = [
-            os.path.join(run_dir, "model_latest.pt"),
-            os.path.join(run_dir, "model.pt"),
-        ]
-        checkpoints_dir = os.path.join(run_dir, "checkpoints")
-        if os.path.isdir(checkpoints_dir):
-            candidates.extend(
-                str(p)
-                for p in sorted(
-                    Path(checkpoints_dir).glob("model_step*.pt"), key=lambda p: p.stat().st_mtime, reverse=True
-                )
-            )
-        for candidate in candidates:
-            if os.path.exists(candidate):
-                return candidate
-        raise FileNotFoundError(f"no checkpoint found for train.resume_from='latest' in {run_dir}")
-    return resume_from
 
 
 def _dedupe_path_objects(paths: list[Path]) -> list[Path]:
@@ -7011,6 +6908,7 @@ def _train_impl(config: ExperimentConfig, resources: ExitStack) -> dict:
     interval_m2t_loss_sum = 0.0
     interval_m2t_loss_count = 0
     interval_m2t_microbatches = 0
+    interval_lossable_tokens = 0
     interval_m2t_active_tokens = 0
     interval_t2t_ce_sum = 0.0
     interval_t2t_loss_sum = 0.0
@@ -7147,6 +7045,7 @@ def _train_impl(config: ExperimentConfig, resources: ExitStack) -> dict:
                 "grad_clip_observed_steps": grad_clip_observed_steps,
             },
             "interval": {
+                "lossable_tokens": interval_lossable_tokens,
                 "smooth_loss": smooth_loss,
                 "smooth_count": smooth_count,
                 "m2t_ce_sum": interval_m2t_ce_sum,
@@ -7278,6 +7177,7 @@ def _train_impl(config: ExperimentConfig, resources: ExitStack) -> dict:
         interval_m2t_loss_sum = float(interval["m2t_loss_sum"])
         interval_m2t_loss_count = int(interval["m2t_loss_count"])
         interval_m2t_microbatches = int(interval["m2t_microbatches"])
+        interval_lossable_tokens = int(interval["lossable_tokens"])
         interval_m2t_active_tokens = int(interval["m2t_active_tokens"])
         interval_t2t_ce_sum = float(interval["t2t_ce_sum"])
         interval_t2t_loss_sum = float(interval["t2t_loss_sum"])
@@ -7678,6 +7578,51 @@ def _train_impl(config: ExperimentConfig, resources: ExitStack) -> dict:
             else:
                 target_indices = active.reshape(-1).nonzero(as_tuple=True)[0]
             if target_indices.numel() == 0:
+                if is_ddp:
+                    sync_context = model.no_sync if micro < grad_accum_steps - 1 else nullcontext
+                    with sync_context():
+                        with autocast_ctx:
+                            if _uses_uniform_low_variance_estimator(config):
+                                terms = []
+                                for _ in range(2):
+                                    output = _forward_training_model(
+                                        model,
+                                        config,
+                                        z_t,
+                                        x_0,
+                                        forward_attention_mask,
+                                        logits_indices=target_indices,
+                                        return_aux_logits=False,
+                                        noise_level=noise_level,
+                                    )
+                                    terms.append(_graph_connected_zero((output,)))
+                                zero_loss = terms[0] + terms[1]
+                            else:
+                                output = _forward_training_model(
+                                    model,
+                                    config,
+                                    z_t,
+                                    x_0,
+                                    forward_attention_mask,
+                                    logits_indices=target_indices,
+                                    return_aux_logits=return_aux_logits,
+                                    noise_level=noise_level,
+                                    return_hierarchical_logits=use_hierarchical_output,
+                                    return_length_logits=_uses_length_head(config),
+                                    input_embeddings=soft_input_embeddings,
+                                    position_ids=getattr(batch, "position_ids", None),
+                                    target_lengths=_target_lengths_for_conditioning(
+                                        config, x_0, attention_mask, eos_token_id
+                                    ),
+                                )
+                                zero_loss = _empty_target_model_output_zero(
+                                    output,
+                                    use_hierarchical_output=use_hierarchical_output,
+                                    return_aux_logits=return_aux_logits,
+                                    has_length_output=_uses_length_head(config),
+                                    include_length_loss=config.train.length_head_loss_weight > 0,
+                                )
+                        scaler.scale(zero_loss / grad_accum_steps).backward()
                 batch = next(train_loader)
                 x_0 = batch.x_0
                 loss_mask = batch.loss_mask
@@ -8302,6 +8247,7 @@ def _train_impl(config: ExperimentConfig, resources: ExitStack) -> dict:
         interval_m2t_loss_sum += step_m2t_loss_sum
         interval_m2t_loss_count += step_m2t_loss_count
         interval_m2t_microbatches += step_m2t_microbatches
+        interval_lossable_tokens += step_lossable_tokens
         interval_m2t_active_tokens += step_m2t_active_tokens
         train_t2t_ce_sum += step_t2t_ce_sum
         train_t2t_loss_sum += step_t2t_loss_sum
@@ -8327,7 +8273,8 @@ def _train_impl(config: ExperimentConfig, resources: ExitStack) -> dict:
             step_per_token_effective_masked_fraction_max,
         )
 
-        _unscale_optimizers(scaler, optimizers)
+        if step_loss_count:
+            _unscale_optimizers(scaler, optimizers)
         step_gradient_component_norms = _gradient_component_norm_metrics(raw_model)
         if not initial_gradient_metrics:
             initial_gradient_metrics = {"initial_gradient_step": step + 1}
@@ -8383,8 +8330,9 @@ def _train_impl(config: ExperimentConfig, resources: ExitStack) -> dict:
             grad_norm = _grad_norm(raw_model.parameters())
             last_grad_clipped = False
             last_grad_clip_ratio = 1.0
-        _step_optimizers(scaler, optimizers)
-        scaler.update()
+        if step_loss_count:
+            _step_optimizers(scaler, optimizers)
+            scaler.update()
         second_moment_norm = 0.0
         update_norm = 0.0
         if pre_step_params is not None:
@@ -8594,12 +8542,13 @@ def _train_impl(config: ExperimentConfig, resources: ExitStack) -> dict:
                 "train_m2t_loss": interval_m2t_loss_sum / max(1, interval_m2t_loss_count),
                 "train_m2t_microbatches": interval_m2t_microbatches,
                 "train_m2t_active_tokens": interval_m2t_active_tokens,
-                "train_m2t_active_token_frac": interval_m2t_active_tokens / max(1, last_lossable_tokens),
+                "train_interval_lossable_tokens": interval_lossable_tokens,
+                "train_m2t_active_token_frac": interval_m2t_active_tokens / max(1, interval_lossable_tokens),
                 "train_t2t_ce": interval_t2t_ce_sum / max(1, interval_t2t_loss_count),
                 "train_t2t_loss": interval_t2t_loss_sum / max(1, interval_t2t_loss_count),
                 "train_t2t_microbatches": interval_t2t_microbatches,
                 "train_t2t_active_tokens": interval_t2t_active_tokens,
-                "train_t2t_active_token_frac": interval_t2t_active_tokens / max(1, last_lossable_tokens),
+                "train_t2t_active_token_frac": interval_t2t_active_tokens / max(1, interval_lossable_tokens),
                 "last_step_m2t_ce": last_m2t_ce,
                 "last_step_m2t_loss": last_m2t_loss,
                 "last_step_m2t_microbatches": last_m2t_microbatches,
@@ -8780,6 +8729,7 @@ def _train_impl(config: ExperimentConfig, resources: ExitStack) -> dict:
             interval_m2t_loss_sum = 0.0
             interval_m2t_loss_count = 0
             interval_m2t_microbatches = 0
+            interval_lossable_tokens = 0
             interval_m2t_active_tokens = 0
             interval_t2t_ce_sum = 0.0
             interval_t2t_loss_sum = 0.0
@@ -9567,22 +9517,22 @@ def _train_impl(config: ExperimentConfig, resources: ExitStack) -> dict:
         append_jsonl(eval_log_path, final_eval_metrics)
         _write_tensorboard_scalars(tensorboard_writer, "eval", final_eval_metrics, total_steps)
 
-    if rank == 0:
-        saved_state = _rng_state(config)
-        try:
-            row_norm_metrics = _lm_head_row_norm_metrics(
-                raw_model,
-                tokenizer,
-                config.data,
-                device,
-                int(config.train.device_batch_size),
-                int(config.model.max_seq_len),
-                batches=10,
-            )
-            metrics.update(row_norm_metrics)
-        except Exception:
-            pass
-        _restore_rng_state(saved_state, config)
+    with synchronize_probe_failure(is_ddp, world_size, rank):
+        if rank == 0:
+            saved_state = _rng_state(config)
+            try:
+                row_norm_metrics = _lm_head_row_norm_metrics(
+                    raw_model,
+                    tokenizer,
+                    config.data,
+                    device,
+                    int(config.train.device_batch_size),
+                    int(config.model.max_seq_len),
+                    batches=10,
+                )
+                metrics.update(row_norm_metrics)
+            finally:
+                _restore_rng_state(saved_state, config)
 
     if rank == 0:
         _publish_final_outputs(

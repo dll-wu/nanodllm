@@ -5,7 +5,11 @@ It is a design log, not a claim that the recipe is optimal. Changes to the
 model, corruption process, optimizer, sampler, or scale-up defaults should
 update this file and include a reproducible comparison plan.
 
-## Release Baseline
+## Paper baseline
+
+The paper's full-sequence comparison and block comparison each have a scratch and a continuation arm. Use the [per-size profiles](docs/paper-recipes.md) for the chosen budgets, optimizer groups, packing, conditioning and learning rates. A frozen profile records a tested configuration. Its inclusion does not establish an optimum outside its tested grid.
+
+## Original preview baseline
 
 The default research path is a bidirectional masked discrete diffusion language
 model (MDLM):

@@ -8,7 +8,8 @@ repo-local source of truth in `docs/`; see
 
 1. Read `README.md` for install and launch commands.
 2. Read `docs/README.md` for the full documentation index.
-3. Read `DESIGN_DECISIONS.md` before changing model, noise, optimizer, sampler,
+3. For the paper runtime, recipes, evaluations and numerical companion, follow `docs/release.md`.
+4. Read `DESIGN_DECISIONS.md` before changing model, noise, optimizer, sampler,
    or scale-up defaults.
 
 ## Repo Purpose
@@ -40,7 +41,7 @@ and resumable checkpoints.
 - Keep `AGENTS.md` short; add details to a focused file under `docs/`.
 - Update docs in the same change that alters launch behavior, config semantics,
   run artifacts, or architecture.
-- Keep generated corpora, checkpoints, results, and reports out of Git.
+- Keep generated corpora, checkpoints, run directories and scratch reports out of Git. The curated `paper_results/` inputs and manifest are versioned release assets.
 - Keep checked-in configs portable: use repository-relative example paths and
   require users to supply paths for large external datasets or tokenizers.
 - Do not change scientific or scale-up defaults without updating

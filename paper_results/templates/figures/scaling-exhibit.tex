@@ -1,0 +1,6 @@
+\begin{figure*}[t]
+\centering
+\input{figures/scaling}
+\caption{\textbf{The half-AR recipe has a lower full-sequence diffusion bound than scratch at six sizes.} Both recipes use AdamW and receive 40 tokens per counted parameter in total, including AR pretraining. The left panel includes the actual AR parents, trained for 20 tokens per counted parameter and scored with causal cross-entropy. The right panel compares only the two diffusion endpoints at each size. Each endpoint has one training seed and each diffusion score averages four corruption plans.}
+\label{fig:scaling}
+\end{figure*}

@@ -1,0 +1,658 @@
+{
+  "schema": "nanodllm.paper-results.v1",
+  "experimental_cutoff": "2026-11-23",
+  "snapshot_revision": "2026-11-26",
+  "inputs": {
+    "block-losses.json": "dbfa31c2a2d4561f6fe395e4203bf47adf9b3618a81bd5df96f8bfc49f6bf708",
+    "block.json": "800bfd7e301f95979fc471bffa0d1d30598c9ec61c45a63240099dec43634120",
+    "component-losses.json": "fa1bd80f99b81622ed4cbebf239a58b48dfbc171c6202c81383571978b4e7ce4",
+    "components.json": "38c5e20a97ca941105d61111b0df659dbb1cc05bfc22c93d65e7554c87720f84",
+    "development.json": "b1062e81cb8c3e3c61fb227e8e67163589c0831a43357d525cc3b1d0024f9304",
+    "diagnostics.json": "f11ca71acfe2eedab758da428e682c4015d7b42e7c4d691220a0d199ec6db3e1",
+    "historical.json": "b181d4a07fefd85e80d9232fa860111d742c9b6f3216ad7f41d0d50d0f142298",
+    "scaling.json": "feb410f73c8067c0e839e49c18a238e5c43599611f3afbe02271b4f8132c97c7",
+    "scope.json": "e69c299f9d6643ddb786c55459f26f84d0f030043c766e07fba355be3cea5d89",
+    "task-counts.json": "a208e131cd084f88f97ca7c2824f4675e0893c320b2ec9b3c58e0d10f0aac36b"
+  },
+  "series": {
+    "results": {
+      "public_inputs": [
+        "historical"
+      ],
+      "manuscript_manifest_sha256": "6bbf08c18f9e2457510e20d3dc2796e78dfb4ec7a3bd8e99d4c7ecadcae93a83",
+      "verified_source_records": 15
+    },
+    "scaling": {
+      "public_inputs": [
+        "scaling"
+      ],
+      "manuscript_manifest_sha256": "32361ed1e8a6e00e3815978995e69f00139adb4b5df24e7916b44adbeeee34df",
+      "verified_source_records": 16
+    },
+    "d4-development": {
+      "public_inputs": [
+        "development"
+      ],
+      "manuscript_manifest_sha256": "54ab05305d24e5a0698b96bbd80ec66767c8605a64c46f414ec414f819331df5",
+      "verified_source_records": 9
+    },
+    "replication": {
+      "public_inputs": [
+        "components",
+        "component-losses"
+      ],
+      "manuscript_manifest_sha256": "18e9c87c75904a340c172a855c3ca4483b67b3f517e82979494d480ef53b3897",
+      "verified_source_records": 24
+    },
+    "block-results": {
+      "public_inputs": [
+        "block",
+        "block-losses",
+        "task-counts"
+      ],
+      "manuscript_manifest_sha256": "0c465e9f8424633690f138bb68edd61ef77ac5de819073828046ed989eceff73",
+      "verified_source_records": 30
+    }
+  },
+  "paper_exhibits": {
+    "figures/d4-development-exhibit.tex": {
+      "number": 1,
+      "evidence": [
+        "development"
+      ],
+      "scope": "Six seed-47 endpoints. The 37M backbone is a separate comparison."
+    },
+    "tables/component-budget.tex": {
+      "number": 1,
+      "evidence": [
+        "components",
+        "component-losses"
+      ],
+      "scope": "Matched within-row controls. Resample the same documents across fitted seeds 48 and 49."
+    },
+    "figures/block-scaling-exhibit.tex": {
+      "number": 2,
+      "evidence": [
+        "scaling",
+        "block",
+        "block-losses"
+      ],
+      "scope": "Conversion minus scratch. The 59M size marker averages seeds 50–52 and the inset shows each paired interval."
+    },
+    "figures/evaluation-choices.tex": {
+      "number": 3,
+      "evidence": [
+        "components",
+        "diagnostics"
+      ],
+      "scope": "Same target on two input canvases. Per-seed decoder ranges and full-continuation example scores. Excerpts omitted."
+    },
+    "tables/final-models.tex": {
+      "number": 2,
+      "evidence": [
+        "block",
+        "task-counts"
+      ],
+      "scope": "Equal-task raw accuracy. Per-request rather than pooled decode speed, reference-token PPL, byte BPB, mean repeat-4 and EOS count."
+    },
+    "tables/study-design-exhibit.tex": {
+      "number": 3,
+      "evidence": [
+        "scope"
+      ],
+      "scope": "Protocol inventory for four experimental series."
+    },
+    "tables/model-sizes-exhibit.tex": {
+      "number": 4,
+      "evidence": [
+        "scaling"
+      ],
+      "scope": "Plain-backbone total and counted parameters for each depth."
+    },
+    "figures/block-cache.tex": {
+      "number": 4,
+      "evidence": [],
+      "scope": "Architecture schematic. Numerical replay evidence is in diagnostics.json."
+    },
+    "figures/hp-grids.tex": {
+      "number": 5,
+      "evidence": [
+        "development",
+        "historical"
+      ],
+      "scope": "Allocation and continuation-rate curves use full precision. Heat-map shades use rounded grid values within family."
+    },
+    "tables/d4-development-seeds.tex": {
+      "number": 5,
+      "evidence": [
+        "development"
+      ],
+      "scope": "Paired control and candidate endpoints in the development series."
+    },
+    "tables/replication-coverage-exhibit.tex": {
+      "number": 6,
+      "evidence": [
+        "scope",
+        "historical",
+        "components"
+      ],
+      "scope": "Component and control scope recorded by the authors."
+    },
+    "tables/replication-refresh-seeds.tex": {
+      "number": 7,
+      "evidence": [
+        "components",
+        "component-losses"
+      ],
+      "scope": "Separate common and native readouts at seeds 48 and 49."
+    },
+    "tables/fastv2-compute.tex": {
+      "number": 8,
+      "evidence": [
+        "components",
+        "component-losses"
+      ],
+      "scope": "Child-only estimated matrix FLOPs and observational time for approximately matched conversion compute."
+    },
+    "figures/scaling-exhibit.tex": {
+      "number": 6,
+      "evidence": [
+        "scaling"
+      ],
+      "scope": "Half-AR full-sequence AdamW transfer versus scratch. AR20 is the actual parent."
+    },
+    "tables/full-sequence-lr-transfer.tex": {
+      "number": 9,
+      "evidence": [
+        "scaling"
+      ],
+      "scope": "Half, center and double rates where tested. Only transferred center at 268M and 477M."
+    },
+    "figures/block-absolute-exhibit.tex": {
+      "number": 7,
+      "evidence": [
+        "block",
+        "block-losses"
+      ],
+      "scope": "Balanced development panel. Common prediction and reconstruction use different targets."
+    },
+    "tables/block-rate-search-exhibit.tex": {
+      "number": 10,
+      "evidence": [
+        "block"
+      ],
+      "scope": "Discovery seed 50. Preserve all tested 59M conversion and scratch rate cells."
+    },
+    "tables/block-holdout.tex": {
+      "number": 11,
+      "evidence": [
+        "block-losses"
+      ],
+      "scope": "256 documents in two length strata. Both tested 59M conversion rates."
+    },
+    "tables/block-tasks.tex": {
+      "number": 12,
+      "evidence": [
+        "block",
+        "task-counts"
+      ],
+      "scope": "All 21 tasks, fixed baselines, exact completion and ranking. Few- and zero-shot HellaSwag share items."
+    },
+    "tables/decoding-controls-exhibit.tex": {
+      "number": 13,
+      "evidence": [
+        "block"
+      ],
+      "scope": "All tested runtime lengths and both budgets of commitments per forward."
+    }
+  },
+  "outputs": {
+    "companion.tex": {
+      "sha256": "b8df50c024e9f1679941afe2c6d30b2ac09b72e64fc38f91db855cfae528d5ac",
+      "inputs": []
+    },
+    "figures/block-absolute-exhibit.tex": {
+      "sha256": "62e3230cf96f5cd81e5cd68a251ff4ec0b1a9e2703ed24e3173371bbf2a1bf50",
+      "inputs": [
+        "block",
+        "block-losses"
+      ]
+    },
+    "figures/block-cache.tex": {
+      "sha256": "e3e5bb52b50e45c39bbf3aa53455265744663510611f32abd6a1b724ba13ef28",
+      "inputs": []
+    },
+    "figures/block-scaling-exhibit.tex": {
+      "sha256": "e8085510101932236e4ea41209143d84ec49ac406cf4de2c489d64deb6f04f42",
+      "inputs": [
+        "scaling",
+        "block",
+        "block-losses"
+      ],
+      "manuscript_sha256": "97dc91a28b817c7b04ecf0cc7cb6d264f1342cae5c0a944d315455f1cd0d824d",
+      "public_caption_correction": "Seeds 50, 51 and 52 have distinct AR parents. The two conversion rates share the parent within each seed."
+    },
+    "figures/block-scaling.tex": {
+      "sha256": "4186a8b9220d3658bbce4d009f6320d480985f4eac3ecde94831f4a8d560f07b",
+      "inputs": [
+        "block",
+        "block-losses",
+        "task-counts"
+      ]
+    },
+    "figures/d4-development-exhibit.tex": {
+      "sha256": "0e39a718a996312d43b6aea934f21aa5eac15df02a79b146aa7e646cf7167284",
+      "inputs": [
+        "development"
+      ]
+    },
+    "figures/d4-development.tex": {
+      "sha256": "1d12f11fec7e4d6b404e33fa4ffcb157dffafc218805141b9ddffddf015f0d79",
+      "inputs": [
+        "development"
+      ]
+    },
+    "figures/evaluation-choices.tex": {
+      "sha256": "561469527210154883a4c1d3016ce107d9d470a443567e0d8bb5a22edd8bec1c",
+      "inputs": [
+        "components",
+        "diagnostics"
+      ]
+    },
+    "figures/evaluation-marks.tex": {
+      "sha256": "ebd7c5c2cf5e7fec1e9fce65d637400efad867a318b43a3b02d39920e79e92a9",
+      "inputs": [
+        "components"
+      ]
+    },
+    "figures/hp-grid-marks.tex": {
+      "sha256": "df4fe0f1ec2792a421482eb7e957556fd4733dfb758224e233c19d736672bcda",
+      "inputs": [
+        "development",
+        "historical"
+      ]
+    },
+    "figures/hp-grids.tex": {
+      "sha256": "e20ba70dfc87c1fcb0355f4b17764a797d9eae13c5f45c5c9edecec1ab88811a",
+      "inputs": [
+        "development",
+        "historical"
+      ]
+    },
+    "figures/platform-system.tex": {
+      "sha256": "20b361200ce4fa7226465204bf2337c1aaa6a171bec05d7a0b3b8367bb4a9451",
+      "inputs": []
+    },
+    "figures/scaling-exhibit.tex": {
+      "sha256": "b9997bdc43aa26f1e21063145d8b51c29a3e6b76c2b2ae366ae6793d150c2ca5",
+      "inputs": [
+        "scaling"
+      ]
+    },
+    "figures/scaling.tex": {
+      "sha256": "0c16662e4d0c12d479f51c0d3e11150211dd80d91bb770e5962fe979c7acaa03",
+      "inputs": [
+        "scaling"
+      ]
+    },
+    "figures/transfer-effects.tex": {
+      "sha256": "d7903273228b6f6adcb922236cac9b8ce2c8e15fad2bded5e2c76483192019a8",
+      "inputs": [
+        "scaling",
+        "block",
+        "block-losses"
+      ]
+    },
+    "figures/transfer-marks.tex": {
+      "sha256": "7f3f31c2168c953f1686b6ef4deafd98101762d9f89fa4ab4b4418f9c4d6b080",
+      "inputs": [
+        "scaling",
+        "block",
+        "block-losses"
+      ]
+    },
+    "tables/ar-grid.tex": {
+      "sha256": "01f5039198cbf72843522c2749be7ba243e7a298dea09612b9d53f3a920620a0",
+      "inputs": [
+        "historical"
+      ]
+    },
+    "tables/block-d8-generation.tex": {
+      "sha256": "7645a0b0649f601535cceeaa39bff13b6ba9aae128bd5636d9f10dd2bb7bd5c8",
+      "inputs": [
+        "block",
+        "block-losses",
+        "task-counts"
+      ]
+    },
+    "tables/block-d8-grid.tex": {
+      "sha256": "5739ad6c86c367f18a7d5e97007cc94a9f02f010505c3e89f2a9d8a2ad7e602a",
+      "inputs": [
+        "block",
+        "block-losses",
+        "task-counts"
+      ]
+    },
+    "tables/block-generation-lengths.tex": {
+      "sha256": "9e276643922d371e6f104722ba007af7cd8dcc9d8dc05b1db75739d364f74aaf",
+      "inputs": [
+        "block",
+        "block-losses",
+        "task-counts"
+      ]
+    },
+    "tables/block-generation.tex": {
+      "sha256": "75973ee0ae918374da421650aa73ba36509ed6078acbf7863547a7f55f7eb0aa",
+      "inputs": [
+        "block",
+        "block-losses",
+        "task-counts"
+      ]
+    },
+    "tables/block-holdout.tex": {
+      "sha256": "00286e518f6802fe2a60e67c989cbc868676d76cbeaef8150d3d6cccddbb29f5",
+      "inputs": [
+        "block-losses"
+      ]
+    },
+    "tables/block-intervals.tex": {
+      "sha256": "34f34e428df49c761e651449eeabcb9910e8f16c39a7cd6b36cbaf2a7d3c61b5",
+      "inputs": [
+        "block",
+        "block-losses",
+        "task-counts"
+      ]
+    },
+    "tables/block-prediction.tex": {
+      "sha256": "1d10715b397a6f1101ccda1dd64744f0400cb6b4a572c325bbe909e5b238318e",
+      "inputs": [
+        "block",
+        "block-losses",
+        "task-counts"
+      ]
+    },
+    "tables/block-rate-rows.tex": {
+      "sha256": "4957121818d41e05550583bd38e866d2e83a09e7edc8a71c88e7c254e9d74713",
+      "inputs": [
+        "block"
+      ]
+    },
+    "tables/block-rate-search-exhibit.tex": {
+      "sha256": "8b4d0ce4adc16bb4c658b109d8586d152e97c338580c86a7f0c4b8f9d765fbf9",
+      "inputs": [
+        "block"
+      ]
+    },
+    "tables/block-runtime.tex": {
+      "sha256": "3ecf05299ff3b82eac3c7ca4abc102a7e7b6b3d01b3c7770281928556a689146",
+      "inputs": [
+        "block",
+        "block-losses",
+        "task-counts"
+      ]
+    },
+    "tables/block-seeds.tex": {
+      "sha256": "40d2ab15fe041a0e19be46d1896254c24adee821da06e2cd9ffa6f79f95dec91",
+      "inputs": [
+        "block",
+        "block-losses",
+        "task-counts"
+      ]
+    },
+    "tables/block-task-controls.tex": {
+      "sha256": "ca6fa808ab3903b973b553a6ebfd3158ccb849c0c362d1be15695ea69f5ebd0f",
+      "inputs": [
+        "block",
+        "block-losses",
+        "task-counts"
+      ]
+    },
+    "tables/block-tasks-main.tex": {
+      "sha256": "4c52ba8cdc2c73c65a3b4e5c8091c5a57a2a1e354252e4f2897fec4952876c4e",
+      "inputs": [
+        "block",
+        "block-losses",
+        "task-counts"
+      ]
+    },
+    "tables/block-tasks.tex": {
+      "sha256": "55886dd5e9d0e6c0982788aa592052592ecaf0d595078d006d543433337b748f",
+      "inputs": [
+        "block",
+        "task-counts"
+      ]
+    },
+    "tables/component-budget-rows.tex": {
+      "sha256": "250c911b5138e1097efebd52d628a3ecbe4eaac4be3115a79dcf84306b56f879",
+      "inputs": [
+        "component-losses"
+      ]
+    },
+    "tables/component-budget.tex": {
+      "sha256": "36be6f9fc0382859233e10e89da92e2e6a90bb43dfbf07936d204289e99e37a1",
+      "inputs": [
+        "components",
+        "component-losses"
+      ]
+    },
+    "tables/component-seeds.tex": {
+      "sha256": "11c1477429b22e7cb9b924e65897e0e13b4ff8b612abdf6a7360ea25727391a6",
+      "inputs": [
+        "historical"
+      ]
+    },
+    "tables/components.tex": {
+      "sha256": "3f74b1c4dbbf706fc89725f84da7ac37375e42877e06bfbe6a6086d0c5473d46",
+      "inputs": [
+        "historical"
+      ]
+    },
+    "tables/context.tex": {
+      "sha256": "7abdfcee679432084a6c5ca392ae89ed91811e01949407fef2138c00c35a1cc5",
+      "inputs": [
+        "historical"
+      ]
+    },
+    "tables/d12-muon.tex": {
+      "sha256": "c45d83d4acd130df298f4fdbe4ec33c3ff4ab833fa3252702e23c43d8dade75e",
+      "inputs": [
+        "historical"
+      ]
+    },
+    "tables/d20-generation.tex": {
+      "sha256": "e96b4659b6964635662bfefa4269fd5d9b399f0ac4fc428772e0cbd9579193cb",
+      "inputs": [
+        "historical"
+      ]
+    },
+    "tables/d20-prediction.tex": {
+      "sha256": "12925d6b38c81a9da767bbe2ba747e5c64235aeadcdb9915a512748abc25c275",
+      "inputs": [
+        "historical"
+      ]
+    },
+    "tables/d20-recipes.tex": {
+      "sha256": "d404e5ee8a28d6b792cb192b14ff1597761c46bf0242923fef0e3d60c2d99dfd",
+      "inputs": [
+        "historical"
+      ]
+    },
+    "tables/d20-tasks.tex": {
+      "sha256": "4e5cf1fde00a7559ff172a32c36bc0abea83635e086862dccf46334bf1464e66",
+      "inputs": [
+        "historical"
+      ]
+    },
+    "tables/d4-development-seeds.tex": {
+      "sha256": "d13816c777cbe12441928810faa04a450288a3dfc115c18ff82a3b8f77e1fb70",
+      "inputs": [
+        "development"
+      ]
+    },
+    "tables/d4-development.tex": {
+      "sha256": "c5a86fb306b407230ed1f544af620a843049e8a209195e0c99ab645f7c48bb7c",
+      "inputs": [
+        "development"
+      ]
+    },
+    "tables/d4-hp-allocation.tex": {
+      "sha256": "b71a4c62f3ab713aac8008ed42974743dc14af2c2a64058c2fcc3dbc4789556c",
+      "inputs": [
+        "development"
+      ]
+    },
+    "tables/d4-hp-batch.tex": {
+      "sha256": "b1af8eaa7061424219b2471fdd5c672a1ac43b5beb0db228cf7b4b211d27610b",
+      "inputs": [
+        "development"
+      ]
+    },
+    "tables/d4-hp-schedule.tex": {
+      "sha256": "158ce1b1a4a01a81a63fb77a61333a927b047173d44f1f7cc154348040097916",
+      "inputs": [
+        "development"
+      ]
+    },
+    "tables/decoding-control-rows.tex": {
+      "sha256": "1c4643e9d544546dfd2f4a1f9cfdfa98c584d74f9687ef1dbf21584e57d095cb",
+      "inputs": [
+        "block"
+      ]
+    },
+    "tables/decoding-controls-exhibit.tex": {
+      "sha256": "d3ad8e7d76663dcff1067eca837c493125c7257507ea4e1e90e2e4117a81a185",
+      "inputs": [
+        "block"
+      ]
+    },
+    "tables/estimator-screen.tex": {
+      "sha256": "140255fbd9183ca61a3bac221bec5459196727e570f878699db9068ae6d5ff42",
+      "inputs": [
+        "historical"
+      ]
+    },
+    "tables/fastv2-compute-generation.tex": {
+      "sha256": "ecfc3c461c523051695a1f322b33a17c6c090620ef36289edb6457ac5b941250",
+      "inputs": [
+        "components",
+        "component-losses"
+      ]
+    },
+    "tables/fastv2-compute.tex": {
+      "sha256": "5f4f547d76092939f1ef54e7d46eff52539cc42bbcd1bf49d8618d04ee031267",
+      "inputs": [
+        "components",
+        "component-losses"
+      ]
+    },
+    "tables/final-model-rows.tex": {
+      "sha256": "ce9b19e2dff42b0e322aaa45f6c462e34cedccb2fb770820a70a23bf573dd902",
+      "inputs": [
+        "block",
+        "task-counts"
+      ]
+    },
+    "tables/final-models.tex": {
+      "sha256": "dbe3323b89d48dfe266f2d550ce78baf4879ed6bbb15dd838a749a9ad82f3ed9",
+      "inputs": [
+        "block",
+        "task-counts"
+      ]
+    },
+    "tables/full-sequence-lr-transfer.tex": {
+      "sha256": "e41b0cfd08664de0aaef5ab5fe3db75838f3ef4bf7a54b9e69a8cc5f110aad75",
+      "inputs": [
+        "scaling"
+      ]
+    },
+    "tables/generation-d4.tex": {
+      "sha256": "25c79da3381479e50f258d8067a3a4ec07e73b49041f77d9890a1dcf0df4730d",
+      "inputs": [
+        "historical"
+      ]
+    },
+    "tables/mdlm-grid.tex": {
+      "sha256": "6c98886235f96ecfbe57ee2f09e41c44f1f4376a775aa4df24f6c8401eace7a0",
+      "inputs": [
+        "historical"
+      ]
+    },
+    "tables/model-size-rows.tex": {
+      "sha256": "04a4b2b530434f7994ff34021bb479a6279f49a8be5555a33451bd5dbb8d855d",
+      "inputs": [
+        "scaling"
+      ]
+    },
+    "tables/model-sizes-exhibit.tex": {
+      "sha256": "d429cd52fc31e92c435f6e69b8d0abac81681e4dfeda426465b8f89b4620c477",
+      "inputs": [
+        "scaling"
+      ]
+    },
+    "tables/repair-screen.tex": {
+      "sha256": "f862e67f65a6eda3ece04f7c097bea3ce942051addf6631239e90ced16c6cec6",
+      "inputs": [
+        "historical"
+      ]
+    },
+    "tables/replication-coverage-exhibit.tex": {
+      "sha256": "2a4a64d97e0a7e21b289bb96afc8d670c63acba477384f9cb0281d7fe2bc144f",
+      "inputs": [
+        "scope",
+        "historical",
+        "components"
+      ]
+    },
+    "tables/replication-coverage-rows.tex": {
+      "sha256": "b47a7b977b3af054862e3740f8ddfc414e7a9179f8110cd5db60308324158920",
+      "inputs": [
+        "scope"
+      ]
+    },
+    "tables/replication-refresh-generation.tex": {
+      "sha256": "8c11768ecf841601dd321e17127694373f299c2b7bac21fca0aeb2f1705089d9",
+      "inputs": [
+        "components",
+        "component-losses"
+      ]
+    },
+    "tables/replication-refresh-seeds.tex": {
+      "sha256": "c08d80c70e3b95b8aba5320b49e935b876aba6c648889cf6b963a7e17d176dd0",
+      "inputs": [
+        "components",
+        "component-losses"
+      ]
+    },
+    "tables/replication-refresh.tex": {
+      "sha256": "fc15e0e702d695644c652b802cd35a14563abf72f10cb5df10f37b3d2b15b6e5",
+      "inputs": [
+        "components",
+        "component-losses"
+      ]
+    },
+    "tables/scaling.tex": {
+      "sha256": "ea88b27a7ae4cb3096d0d52b0f0d63e1208dc386b08c6a6090c16d6a9531b29f",
+      "inputs": [
+        "scaling"
+      ]
+    },
+    "tables/study-design-exhibit.tex": {
+      "sha256": "ec2d693de59ac21ef7d118bc31b61a096802fc10fefb254c83d7ac9d689ea3c9",
+      "inputs": [
+        "scope"
+      ]
+    },
+    "tables/study-design-rows.tex": {
+      "sha256": "1d361a2ad966fa2d5859fe554883079e401e8a573cc6a9a5b864c088aa9dfc50",
+      "inputs": [
+        "scope"
+      ]
+    }
+  },
+  "supplementary_sources": {
+    "trainer_replay_endpoint": "2c073a61a810f7f5fa06fa90600260e24f488841ce2b5d2a99733bfbd2b69b5c",
+    "cache_replay_summary": "9eb13d9a552153e4c7632addf671264ff6e7d599d84d5571fed587e9b1eed5c6",
+    "decoder_controls": "4b808e9f20cb756b84c76ee0995b9a623678cd79f907f3c39edf3ffd04251231",
+    "historical_task_baselines": "abca3464fc07b570f3224a59120a30d244f572d77b7fd48a43975cd4920cbbdd"
+  }
+}

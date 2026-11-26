@@ -11,9 +11,12 @@ include pyproject.toml
 include pretrain.py
 
 recursive-include configs *.json
+recursive-include paper_results *.py *.json *.tex *.md
+recursive-include evaluation *.json *.md
 recursive-include docs *.md
 recursive-include examples *.txt
 recursive-include nanodllm *.py
+include nanodllm/paper_runtime/vendor/nanochat/LICENSE
 recursive-include scripts *.py
 recursive-include tests *.py
 

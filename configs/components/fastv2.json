@@ -1,0 +1,83 @@
+{
+  "arms": {
+    "token-causal": {
+      "objective": "native-bl32",
+      "policy": {},
+      "overrides": {
+        "model": {
+          "bd3lm_block_size": 32,
+          "bd3lm_clean_stream_mode": "causal"
+        },
+        "data": {
+          "random_length_ratio": 0.01
+        },
+        "noise": {
+          "type": "bd3lm"
+        },
+        "optim": {
+          "nanochat_execution_scope": "single_rank_causal_block_d4"
+        },
+        "train": {
+          "num_steps": 5280,
+          "target_tokens": 346030080,
+          "target_param_data_ratio": 30,
+          "save_every": 528
+        }
+      }
+    },
+    "block-causal": {
+      "objective": "B1",
+      "policy": {
+        "block_size": 32,
+        "t_min": 0.05,
+        "t_max": 1.0,
+        "warmup_fraction": 0.1,
+        "decay_fraction": 0.1,
+        "clean_stream_mode": "block_causal"
+      },
+      "overrides": {
+        "train": {
+          "num_steps": 5280,
+          "target_tokens": 346030080,
+          "target_param_data_ratio": 30.0
+        }
+      }
+    },
+    "full": {
+      "objective": "B3",
+      "policy": {
+        "block_size": 32,
+        "t_min": 0.001,
+        "t_max": 1.0,
+        "exclude_unpredictable_first_targets": true
+      },
+      "overrides": {
+        "data": {
+          "random_length_ratio": 0.01
+        },
+        "train": {
+          "num_steps": 5280,
+          "target_tokens": 346030080,
+          "target_param_data_ratio": 30,
+          "save_every": 528
+        }
+      }
+    },
+    "matched": {
+      "objective": "B3",
+      "policy": {
+        "block_size": 32,
+        "t_min": 0.001,
+        "t_max": 1.0,
+        "exclude_unpredictable_first_targets": true
+      },
+      "overrides": {
+        "train": {
+          "num_steps": 1817,
+          "target_tokens": 119078912,
+          "target_param_data_ratio": 10.323863636363637
+        }
+      }
+    }
+  }
+}

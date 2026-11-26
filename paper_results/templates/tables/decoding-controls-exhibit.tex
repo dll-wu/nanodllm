@@ -1,0 +1,16 @@
+\begin{table*}[t]
+\input{tables/decoding-control-rows}
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrr rr rr rr rr rr@{}}
+\toprule
+Size & Cap $K$ & Block & \multicolumn{2}{c}{Ref. PPL} & \multicolumn{2}{c}{Ref. BPB} & \multicolumn{2}{c}{Repeat-4 (\%)} & \multicolumn{2}{c}{EOS / 64} & \multicolumn{2}{c}{Tokens/fwd} \\
+\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(l){12-13}
+& & length & S & C & S & C & S & C & S & C & S & C \\
+\midrule
+\exhibitrows
+\bottomrule
+\end{tabular}
+\caption{Generation at each tested block length. Each metric pairs scratch (S) with AR-initialized diffusion (C) on the same 32 prompts and two sampling seeds. The EOS columns count natural stops before 256 content tokens.}
+\label{tab:decoding-controls}
+\end{table*}

@@ -27,3 +27,5 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+The paper training runtime also includes the unmodified `nanochat/optim.py` and its MIT license from the same upstream revision under `nanodllm/paper_runtime/vendor/nanochat/`. The loader verifies their SHA-256 digests before use. It supplies the selected compute dtype, omits nanochat's application imports and removes the two compile decorators for eager execution. The numerical kernel bodies are the upstream implementation.
