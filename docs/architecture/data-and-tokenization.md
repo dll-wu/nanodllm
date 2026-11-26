@@ -103,7 +103,7 @@ python scripts/prepare_tiny_corpus.py
 ```
 
 This writes the ignored `data/tiny_corpus.parquet` expected by
-`configs/smoke_byte.json`. It is for plumbing checks only.
+`recipes/preview/smoke_byte.json`. It is for plumbing checks only.
 
 ## Data Identity
 
@@ -114,7 +114,7 @@ export NANODLLM_DATA_DIR=/path/to/climbmix-400b-shuffle
 export NANODLLM_TOKENIZER_DIR=/path/to/climbmix-32k
 
 python scripts/data_identity.py \
-  --config configs/climbmix_mdlm_small.json \
+  --config recipes/preview/climbmix_mdlm_small.json \
   --world-size 1 \
   --output /tmp/nanodllm-data-identity.json
 ```

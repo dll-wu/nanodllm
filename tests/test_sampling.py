@@ -6,8 +6,9 @@ import pyarrow.parquet as pq
 import pytest
 import torch
 from nanodllm.data import ByteTokenizer
-from nanodllm.eval import _self_reconstruction_ce, evaluate_generation_metrics
+from nanodllm.eval import evaluate_generation_metrics
 from nanodllm.noise import MaskUniformNoise, MDLMNoise, UniformNoise
+from nanodllm.runtime.eval import _self_reconstruction_ce
 from nanodllm.sampling import (
     block_special_logits,
     sample_bd3lm,

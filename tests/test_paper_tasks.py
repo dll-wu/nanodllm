@@ -3,17 +3,17 @@ import json
 from dataclasses import replace
 
 import pytest
-from nanodllm.paper_runtime.core_prompting import PreparedExample, TargetSequence, fewshot_indices, task_indices
-from nanodllm.paper_runtime.data import ByteTokenizer
-from nanodllm.paper_tasks import main
-from nanodllm.paper_tasks_aggregate import paired
-from nanodllm.paper_tasks_data import PAPER_ROSTER, prepare_panel, read_roster, retain_bos
-from nanodllm.paper_tasks_scoring import exact_completion, rank_candidates
-from scripts.paper_tasks_demo import create
+from nanodllm.runtime.core_prompting import PreparedExample, TargetSequence, fewshot_indices, task_indices
+from nanodllm.runtime.data import ByteTokenizer
+from nanodllm.tasks.aggregate import paired
+from nanodllm.tasks.cli import main
+from nanodllm.tasks.data import prepare_panel, read_roster, retain_bos, study_roster
+from nanodllm.tasks.scoring import exact_completion, rank_candidates
+from scripts.tasks_demo import create
 
 
 def test_roster_counts_and_corrected_boundaries(tmp_path):
-    rows = read_roster(PAPER_ROSTER)
+    rows = read_roster(study_roster())
     assert len(rows) == 21 and sum(s["selected_count"] for s in rows) == 8845
     assert len({s["data_sha256"] for s in rows}) == 20
     assert sum(s["task_type"] == "language_modeling" for s in rows) == 8
@@ -44,7 +44,7 @@ def test_crop_cannot_replace_answer():
 
 class Oracle:
     def target_groups(self, seq):
-        from nanodllm.paper_runtime.core_diffusion_adapters import TargetGroup
+        from nanodllm.runtime.core_diffusion_adapters import TargetGroup
 
         groups = []
         start = seq.start

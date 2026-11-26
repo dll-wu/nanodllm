@@ -5,14 +5,15 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 import torch
-from nanodllm.paper_generation import Decoder, generate_panel, main, read_prompts
-from nanodllm.paper_generation_panel import GENERATION_PANEL, reconstruct
-from nanodllm.paper_generation_reference import encode_continuation, score_outputs
-from nanodllm.paper_runtime.block_recipe_sampling import generate
-from nanodllm.paper_runtime.core_task_data import json_digest
-from nanodllm.paper_runtime.data import ByteTokenizer
-from nanodllm.paper_tasks_model import load_block
-from scripts.paper_tasks_demo import create
+from nanodllm.evaluation.block_checkpoint import load_block
+from nanodllm.generation.cli import main
+from nanodllm.generation.panel import reconstruct, study_panel
+from nanodllm.generation.reference import encode_continuation, score_outputs
+from nanodllm.generation.sampling import Decoder, generate_panel, read_prompts
+from nanodllm.runtime.block_recipe_sampling import generate
+from nanodllm.runtime.core_task_data import json_digest
+from nanodllm.runtime.data import ByteTokenizer
+from scripts.tasks_demo import create
 
 
 @pytest.mark.parametrize(
@@ -74,7 +75,7 @@ def test_local_panel_reconstruction(tmp_path):
         rows=[dict(row=2, id="third"), dict(row=0, id="first")], prefix_tokens=3, prompts_sha256=json_digest(ref)
     )
     assert reconstruct(pq.ParquetFile(path), ByteTokenizer(), panel) == ref
-    published = json.loads(GENERATION_PANEL.read_bytes())
+    published = study_panel()
     assert len(published["rows"]) == 32
     assert sum(r["length_stratum"] == "short" for r in published["rows"]) == 16
 
@@ -165,3 +166,19 @@ def test_generation_cli(tmp_path):
     report = json.loads(path.read_bytes())
     assert report["summary"]["samples"] == 4 and report["decoder"]["block_length"] == 8
     assert "The lamp blinked twice." not in path.read_text()
+
+
+def test_literal_prompt_stdout_uses_available_context(tmp_path, capsys, monkeypatch):
+    def unexpected_asset(name):
+        pytest.fail(f"custom generation requested {name}")
+
+    monkeypatch.setattr("nanodllm.generation.panel.release_asset", unexpected_asset)
+    create(tmp_path)
+    args = ["--checkpoint", str(tmp_path / "demo-11.weights.pt"), "--seed", "7", "--prompt"]
+    main([*args, "a" * 125])
+    report = json.loads(capsys.readouterr().out)
+    assert report["decoder"]["capacity"] == 2
+    assert report["summary"]["samples"] == 1
+    assert isinstance(report["samples"][0]["text"], str)
+    with pytest.raises(ValueError, match="no room"):
+        main([*args, "a" * 127])

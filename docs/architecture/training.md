@@ -1,6 +1,6 @@
 # Training
 
-`nanodllm.training` owns the normal lifecycle after config resolution. It
+The public `nanodllm.training.train` calls the loop in `nanodllm.runtime.training_loop` after config resolution. It
 lazily calls `nanodllm.training_diagnostics.run_configured_diagnostic` after
 tokenizer construction only when the analytic Bayes audit is enabled.
 `nanodllm.telemetry` owns structured-file and TensorBoard writer helpers.
@@ -11,7 +11,7 @@ CPU smoke:
 
 ```bash
 python scripts/prepare_tiny_corpus.py
-nanodllm-pretrain --config configs/smoke_byte.json
+nanodllm-pretrain --config recipes/preview/smoke_byte.json
 ```
 
 One GPU:
@@ -19,14 +19,14 @@ One GPU:
 ```bash
 export NANODLLM_DATA_DIR=/path/to/climbmix
 export NANODLLM_TOKENIZER_DIR=/path/to/climbmix-32k-tokenizer
-nanodllm-pretrain --config configs/climbmix_mdlm_small.json
+nanodllm-pretrain --config recipes/preview/climbmix_mdlm_small.json
 ```
 
 Single-node DDP:
 
 ```bash
 torchrun --standalone --nproc_per_node=8 pretrain.py \
-  --config configs/climbmix_mdlm_d20.json
+  --config recipes/preview/climbmix_mdlm_d20.json
 ```
 
 `torchrun` sets rank, local rank, and world size. The trainer uses NCCL for CUDA
@@ -124,7 +124,7 @@ Resume the canonical checkpoint in the same run directory with:
 
 ```bash
 nanodllm-pretrain \
-  --config configs/climbmix_mdlm_small.json \
+  --config recipes/preview/climbmix_mdlm_small.json \
   --set train.resume_from=latest
 ```
 

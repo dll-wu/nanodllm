@@ -4,9 +4,9 @@ import sys
 from pathlib import Path
 
 import pytest
-from nanodllm import paper_recipes
-from nanodllm.paper_recipes_data import file_sha256
-from nanodllm.paper_weights import export_weights
+from nanodllm.weights import export_weights
+from recipes import launch
+from recipes.data import file_sha256
 
 
 def test_cpu_ar_scratch_and_portable_conversion(tmp_path, monkeypatch):
@@ -17,12 +17,12 @@ def test_cpu_ar_scratch_and_portable_conversion(tmp_path, monkeypatch):
         monkeypatch.setenv(key, "1")
     common = ["--corpus", str(corpus), "--output-dir", str(tmp_path / "configs")]
     for profile in ("tiny-ar", "tiny-scratch"):
-        paper_recipes.main(["launch", profile, *common, "--run-dir", str(tmp_path / profile)])
+        launch.main(["launch", profile, *common, "--run-dir", str(tmp_path / profile)])
     original = tmp_path / "tiny-ar" / "model_latest.pt"
     parent = tmp_path / "parent.weights.pt"
     parent_hash = export_weights(original, parent, expected_source_sha256=file_sha256(original))
     run = tmp_path / "conversion"
-    paper_recipes.main(
+    launch.main(
         [
             "launch",
             "tiny-convert",
@@ -48,7 +48,7 @@ def test_launch_requires_opt_in_for_resolved_native_parent(tmp_path, capsys):
     alias = tmp_path / "alias.weights.pt"
     alias.symlink_to(original)
     with pytest.raises(SystemExit) as exc:
-        paper_recipes.main(
+        launch.main(
             [
                 "launch",
                 "tiny-convert",
@@ -64,3 +64,22 @@ def test_launch_requires_opt_in_for_resolved_native_parent(tmp_path, capsys):
         )
     assert exc.value.code == 2
     assert "--trusted-training-parent" in capsys.readouterr().err
+
+
+def test_tiny_block_public_trainer(tmp_path, monkeypatch):
+    from nanodllm.cli import main as pretrain
+
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.chdir(tmp_path)
+    subprocess.run(
+        [sys.executable, str(root / "scripts/prepare_tiny_corpus.py"), "--output", "data/tiny_corpus.parquet"],
+        check=True,
+    )
+    pretrain(["--config", str(root / "recipes/tiny-block.json")])
+    run = tmp_path / "runs/tiny-block"
+    cfg = json.loads((run / "resolved_config.json").read_text())
+    assert cfg["model"]["max_seq_len"] == 128
+    assert cfg["model"]["bd3lm_block_size"] == 8 and cfg["noise"]["type"] == "bd3lm"
+    assert cfg["runtime"]["device_type"] == "cpu" and cfg["runtime"]["dtype"] == "float32"
+    steps = [json.loads(line)["step"] for line in (run / "train_log.jsonl").read_text().splitlines()]
+    assert steps == [1, 2] and (run / "model.pt").is_file()

@@ -8,15 +8,15 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 import torch
-from nanodllm.paper_components import main, resolve
-from nanodllm.paper_components_eval import compare
-from nanodllm.paper_components_train import dense_child_flops
-from nanodllm.paper_eval_panels import prepare
-from nanodllm.paper_runtime.data import ByteTokenizer
-from nanodllm.paper_weights import export_weights, file_sha256
+from nanodllm.evaluation.panels import prepare
+from nanodllm.runtime.data import ByteTokenizer
+from nanodllm.weights import export_weights, file_sha256
+from recipes.components.__main__ import main, resolve
+from recipes.components.eval import compare
+from recipes.components.train import dense_child_flops
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFIG = ROOT / "configs/components"
+CONFIG = ROOT / "recipes/components"
 
 
 @pytest.mark.parametrize("seed", [48, 49])
@@ -51,9 +51,9 @@ def test_fast_compute_horizon_from_physical_work():
 
 
 def test_compact_evidence_reproduces_all_six_paired_comparisons():
-    from paper_results.intervals import component_intervals
+    from paper.companion.intervals import component_intervals
 
-    compact = json.loads((ROOT / "paper_results/data/component-losses.json").read_text())
+    compact = json.loads((ROOT / "paper/companion/data/component-losses.json").read_text())
     published = component_intervals(compact)
     names = {
         "bd3_fixed": "bd3/fixed",

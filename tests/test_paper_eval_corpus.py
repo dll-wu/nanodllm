@@ -6,12 +6,12 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 import torch
-from nanodllm.paper_eval import main
-from nanodllm.paper_eval_block import common_prediction, conditional_native_nelbo
-from nanodllm.paper_eval_bos import corruption_plan
-from nanodllm.paper_eval_checkpoint import load_paper_checkpoint, tokenizer_identity
-from nanodllm.paper_eval_compare import paired_comparison
-from nanodllm.paper_eval_panels import (
+from nanodllm.evaluation.block import common_prediction, conditional_native_nelbo
+from nanodllm.evaluation.bos import corruption_plan
+from nanodllm.evaluation.checkpoint import load_checkpoint, tokenizer_identity
+from nanodllm.evaluation.cli import main
+from nanodllm.evaluation.compare import paired_comparison
+from nanodllm.evaluation.panels import (
     FULL_SEEDS,
     block_custom,
     bos_from_packed,
@@ -19,16 +19,16 @@ from nanodllm.paper_eval_panels import (
     pack_documents,
     reference_manifest,
 )
-from nanodllm.paper_runtime.config import ModelConfig
-from nanodllm.paper_runtime.data import ByteTokenizer
-from nanodllm.paper_runtime.model import DiffusionConfig, DiffusionTransformer
-from nanodllm.paper_weights import export_weights, file_sha256
+from nanodllm.runtime.config import ModelConfig
+from nanodllm.runtime.data import ByteTokenizer
+from nanodllm.runtime.model import DiffusionConfig, DiffusionTransformer
+from nanodllm.weights import export_weights, file_sha256
 
 
-def weights(tmp_path, family):
+def weights(tmp_path, family, *, block_size=32):
     tok = ByteTokenizer()
     ar = family == "ar"
-    size = 32 if family == "block" else 0
+    size = block_size if family == "block" else 0
     cfg = DiffusionConfig(
         sequence_len=320,
         vocab_size=tok.get_vocab_size(),
@@ -133,8 +133,8 @@ def test_cli_portable_model_replay(tmp_path, kind, family, capsys):
         assert report["summary"]["common/block_end"]["bytes"] == 63
         assert report["summary"]["native/mean_eval_seeds"]["bytes"] == 31 + 128
     with pytest.raises(ValueError, match="export"):
-        load_paper_checkpoint(trainer)
-    trusted = load_paper_checkpoint(trainer, trusted_training_checkpoint=True)
+        load_checkpoint(trainer)
+    trusted = load_checkpoint(trainer, trusted_training_checkpoint=True)
     assert trusted.tokenizer_sha256 == tokenizer_identity(ByteTokenizer())
     replay = torch.load(moved, weights_only=True)
     replay["panel_sha256"] = "0" * 64
@@ -146,7 +146,7 @@ def test_cli_portable_model_replay(tmp_path, kind, family, capsys):
 
 def test_block_mask_canvas_and_eos_accounting(tmp_path):
     path, _ = weights(tmp_path, "block")
-    model = load_paper_checkpoint(path).model
+    model = load_checkpoint(path).model
     policy = dict(topology="causal_prefix", block_length=32, clean_stream_mode="causal")
     row = dict(id="fixture", prefix_ids=[256] + [65] * 191, gold_ids=[66] * 31 + [258], gold_token_bytes=[1] * 31 + [0])
     inputs = []
@@ -163,6 +163,35 @@ def test_block_mask_canvas_and_eos_accounting(tmp_path):
     estimate = conditional_native_nelbo(model, row, policy=policy, seed=2026110201, draws=16, batch_size=4)
     assert estimate["bytes"] == 31 and estimate["nats"] > estimate["content_nats"]
     assert estimate["nats"] == pytest.approx(205.5041389465332)
+
+
+def test_custom_native_block_panel(tmp_path, monkeypatch):
+    def unexpected_asset(name):
+        pytest.fail(f"custom block scoring requested {name}")
+
+    monkeypatch.setattr("nanodllm.evaluation.panels.release_asset", unexpected_asset)
+    path, _ = weights(tmp_path, "block", block_size=8)
+    shard = tmp_path / "local.parquet"
+    pq.write_table(pa.table({"text": ["short", "abcdefgh", "abcdefgh", "0123456789abcdef"]}), shard)
+    panel = tmp_path / "block.pt"
+    main(["prepare", "block", "--parquet", str(shard), "--block-size", "8", "--count", "2", "--output", str(panel)])
+    data = load_panel(panel, ByteTokenizer())["data"]
+    assert data["block_size"] == 8
+    assert [r["raw_document_index"] for r in data["rows"]] == [1, 3]
+    assert data["rows"][0]["prefix_ids"] == [256, *b"abcdefg"]
+    assert data["rows"][0]["gold_ids"] == [ord("h"), 258]
+    out = tmp_path / "score.json"
+    main(["score", "--checkpoint", str(path), "--panel", str(panel), "--output", str(out)])
+    result = json.loads(out.read_bytes())
+    assert result["reference"] is False
+    for canvas in ("legacy", "block_end"):
+        common = result["summary"][f"common/{canvas}"]
+        assert common["bytes"] == 9
+        assert common["bpb"] == pytest.approx(math.log2(ByteTokenizer().get_vocab_size()))
+    assert result["summary"]["native/mean_eval_seeds"]["bytes"] == 9
+    main(["prepare", "block", "--parquet", str(shard), "--block-size", "4", "--output", str(panel)])
+    with pytest.raises(ValueError, match="native BL4"):
+        main(["score", "--checkpoint", str(path), "--panel", str(panel), "--output", str(out)])
 
 
 def test_custom_disjointness_and_reference_metadata():
@@ -204,8 +233,8 @@ def test_reject_unpaired_report():
 
 
 def test_reference_address_replay_in_original_order(tmp_path):
-    from nanodllm.paper_eval_panels import block_prompt, block_reference, block_root
-    from nanodllm.paper_runtime.data import build_token_bytes
+    from nanodllm.evaluation.panels import block_prompt, block_reference, block_root
+    from nanodllm.runtime.data import build_token_bytes
 
     texts = ["synthetic " + str(i) + " " + "a" * (230 + i) for i in range(4)]
     path = tmp_path / "synthetic.parquet"
@@ -260,8 +289,8 @@ def test_nonuniform_native_checkpoint_parity(clean_mode, expected):
 
 
 def test_prefix_exclusions_guard_replay():
-    from nanodllm.paper_eval_panels import verify_reference_exclusions
-    from nanodllm.paper_runtime.replication_eval_support import digest
+    from nanodllm.evaluation.panels import verify_reference_exclusions
+    from nanodllm.runtime.replication_eval_support import digest
 
     tok = ByteTokenizer()
     packed = pack_documents([["a" * 80]], tok, 1, 70)

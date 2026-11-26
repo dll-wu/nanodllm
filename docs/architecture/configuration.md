@@ -1,11 +1,10 @@
 # Configuration
 
-Training recipes are plain JSON loaded into dataclasses in
-`nanodllm.config`. There is no Hydra or OmegaConf layer.
+The trainer reads a JSON config into [runtime dataclasses](../../nanodllm/runtime/config.py). For a single CPU experiment, start with [the block recipe](../../recipes/tiny-block.json). For matched multi-stage runs, the [recipe launcher](../../recipes/README.md) combines shared defaults and per-stage overrides into that same JSON format.
 
 ```bash
 nanodllm-pretrain \
-  --config configs/smoke_byte.json \
+  --config recipes/tiny-block.json \
   --set train.num_steps=2 \
   --set runtime.device_type=cpu
 ```
@@ -14,7 +13,7 @@ nanodllm-pretrain \
 numbers, lists, objects, and quoted strings retain their types. `--run-dir PATH`
 is a shortcut for `--set train.run_dir=PATH`.
 
-## Recipe Roles
+## Earlier preview configs
 
 - `smoke_byte.json`: portable end-to-end CPU check.
 - `climbmix_mdlm_small.json`: bounded starting point for one accelerator.

@@ -7,7 +7,7 @@ update this file and include a reproducible comparison plan.
 
 ## Paper baseline
 
-The paper's full-sequence comparison and block comparison each have a scratch and a continuation arm. Use the [per-size profiles](docs/paper-recipes.md) for the chosen budgets, optimizer groups, packing, conditioning and learning rates. A frozen profile records a tested configuration. Its inclusion does not establish an optimum outside its tested grid.
+The paper's full-sequence comparison and block comparison each have a scratch and a continuation arm. Use the [per-size profiles](paper/training.md) for the chosen budgets, optimizer groups, packing, conditioning and learning rates. A frozen profile records a tested configuration. Its inclusion does not establish an optimum outside its tested grid.
 
 ## Original preview baseline
 
@@ -29,16 +29,16 @@ and PAD tokens.
 
 ## Public Recipes
 
-- `configs/smoke_byte.json` is a tiny CPU recipe used for installation and
+- `recipes/preview/smoke_byte.json` is a tiny CPU recipe used for installation and
   end-to-end checks.
-- `configs/climbmix_mdlm_small.json` is a bounded single-accelerator starting
+- `recipes/preview/climbmix_mdlm_small.json` is a bounded single-accelerator starting
   point. Its batch size, learning rate, and horizon are examples to calibrate
   on the actual hardware, not published optima.
-- `configs/climbmix_mdlm_d20.json` preserves the intended 20-layer scale-up
+- `recipes/preview/climbmix_mdlm_d20.json` preserves the intended 20-layer scale-up
   shape. It is deliberately labeled provisional and should not be launched
   without resolving data paths, memory, global batch, horizon, and evaluation
   budget.
-- `configs/mdlm_bayes_analytic_audit.json` is a self-contained CPU audit of the
+- `recipes/preview/mdlm_bayes_analytic_audit.json` is a self-contained CPU audit of the
   synthetic corruption and empirical Bayes calculation. It does not train a
   model.
 
@@ -109,8 +109,4 @@ data slice, or sampler should not be promoted into a universal default.
 
 ## Research Status
 
-This preview publishes code and procedures, not a final model, checkpoint, or
-benchmark claim. Earlier internal experiments motivated several implementation
-choices, but their private execution records are intentionally not part of this
-snapshot. Treat those choices as hypotheses to reproduce. Publicly supportable
-claims and current limitations are listed in `docs/research-status.md`.
+The [paper companion](paper/README.md) contains frozen profiles and the retained measurements supporting the publication. The [scientific scope](docs/research-status.md) explains which comparisons each study supports. Editable recipes can evolve independently of the paper profiles.

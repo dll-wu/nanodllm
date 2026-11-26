@@ -1,0 +1,172 @@
+{
+  "validation_shard": "shard_06542.parquet",
+  "defaults": {
+    "model": {
+      "depth": 4,
+      "n_embd": 256,
+      "n_head": 4,
+      "max_seq_len": 1024,
+      "mlp_hidden_dim": 1024,
+      "bd3lm_block_size": 32,
+      "bd3lm_clean_stream_mode": "causal",
+      "causal": false,
+      "backbone_profile": "nanollada_v1"
+    },
+    "data": {
+      "tokenizer": "hf",
+      "val_fraction": 0,
+      "prepend_bos": true,
+      "append_eos": true,
+      "loss_on_bos": false,
+      "loss_on_eos": true,
+      "shuffle_seed": 319180586,
+      "content_budget_segmented_packing": true,
+      "bos_packing_mode": "bestfit_segmented",
+      "bos_packing_buffer_size": 1000,
+      "identity_mode": "metadata"
+    },
+    "noise": {
+      "type": "bd3lm",
+      "t_min": 0.001,
+      "t_max": 1,
+      "schedule_weight": true,
+      "mdlm_time_sampling": "legacy_auto",
+      "complement_masking": false
+    },
+    "optim": {
+      "type": "nanochat_muon",
+      "lr": 0.007,
+      "weight_decay": 0.1,
+      "adam_beta1": 0.9,
+      "adam_beta2": 0.95,
+      "adam_eps": 1e-08,
+      "warmup_steps": -1,
+      "warmup_ratio": 0.05,
+      "warmdown_ratio": 0.3,
+      "final_lr_frac": 0,
+      "grad_clip": 0,
+      "nanochat_checkout": "",
+      "nanochat_embedding_lr": 0.18371173070873834,
+      "nanochat_head_lr": 0.004898979485566356,
+      "nanochat_execution_scope": "single_rank_causal_block_d4"
+    },
+    "parameterization": {
+      "mode": "ordinary",
+      "execution_scope": "ordinary",
+      "base_depth": 4,
+      "base_width": 256,
+      "contract_binding": "required"
+    },
+    "runtime": {
+      "device_type": "cuda",
+      "dtype": "bfloat16",
+      "seed": 48,
+      "model_seed": 48,
+      "training_seed": 48,
+      "compile": false,
+      "compile_dynamic": true,
+      "min_free_gpu_mib": 5120,
+      "float32_matmul_precision": "high",
+      "allow_tf32": true,
+      "cudnn_allow_tf32": true,
+      "deterministic_algorithms": true
+    },
+    "train": {
+      "target_param_count_basis": "nanochat_scaling_parameters",
+      "total_batch_size": 65536,
+      "device_batch_size": 16,
+      "base_total_batch_size": 131072,
+      "scale_lr_by_batch": false,
+      "log_interval": 20,
+      "tensorboard": false,
+      "eval_every": -1,
+      "telemetry_interval_seconds": 5,
+      "bd3lm_partition_mode": "mixed",
+      "bd3lm_partition_lengths": [
+        8,
+        16,
+        32,
+        64
+      ],
+      "bd3lm_partition_seed": 20261150,
+      "divergence_check_interval": 10
+    },
+    "eval": {
+      "enabled": false,
+      "gen_eval": false,
+      "nelbo_tokens": 262144,
+      "nelbo_t_min": 0,
+      "nelbo_seed": 1527547018,
+      "fixed_ce_batches": 1,
+      "reconstruction_eval": false,
+      "gen_samples": 1,
+      "judge_model_id": "",
+      "conditional_rank_eval": false
+    },
+    "recipe": {
+      "status": "unspecified"
+    }
+  },
+  "profiles": {
+    "d4-scratch40": {
+      "world_size": 1,
+      "overrides": {
+        "train": {
+          "num_steps": 7040,
+          "target_tokens": 461373440,
+          "target_param_data_ratio": 40,
+          "save_every": 704
+        }
+      }
+    },
+    "d4-ar10": {
+      "world_size": 1,
+      "overrides": {
+        "model": {
+          "bd3lm_block_size": 0,
+          "bd3lm_clean_stream_mode": "block_causal",
+          "causal": true
+        },
+        "data": {
+          "shuffle_seed": 319180585
+        },
+        "noise": {
+          "type": "mdlm"
+        },
+        "optim": {
+          "lr": 0.014,
+          "nanochat_embedding_lr": 0.36742346141747667,
+          "nanochat_execution_scope": "single_rank"
+        },
+        "runtime": {
+          "compile": true
+        },
+        "train": {
+          "num_steps": 1760,
+          "target_tokens": 115343360,
+          "target_param_data_ratio": 10,
+          "save_every": 176,
+          "eval_every": 88,
+          "bd3lm_partition_mode": "fixed",
+          "bd3lm_partition_lengths": [],
+          "bd3lm_partition_seed": 0
+        },
+        "eval": {
+          "enabled": true
+        }
+      }
+    },
+    "d4-block30": {
+      "world_size": 1,
+      "parent": "d4-ar10",
+      "overrides": {
+        "train": {
+          "num_steps": 5280,
+          "target_tokens": 346030080,
+          "target_param_data_ratio": 30,
+          "save_every": 528
+        }
+      }
+    }
+  }
+}

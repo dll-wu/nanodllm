@@ -2,14 +2,11 @@ import json
 import subprocess
 from pathlib import Path
 
-from nanodllm.config import DataConfig, ExperimentConfig, ModelConfig, TrainConfig, validate_config
-from nanodllm.data import ByteTokenizer
-from nanodllm.training import (
-    _artifact_root_candidates,
-    _label_smoothing_ar_metrics,
-    _live_source_provenance,
-    source_provenance_metrics,
-)
+from nanodllm.config import apply_overrides, load_config
+from nanodllm.runtime.training_checkpoint import _artifact_root_candidates
+from nanodllm.source_provenance import _live_source_provenance
+from nanodllm.training import source_provenance_metrics, train
+from scripts.prepare_tiny_corpus import prepare_corpus
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
@@ -66,17 +63,23 @@ def test_dirty_checkout_reports_counts_without_blocking_or_leaking_paths(monkeyp
     assert len(metrics["source_provenance_warnings"]) == 2
 
 
-def test_causal_label_smoothing_accepts_the_configured_tokenizer_without_environment_contracts():
-    config = ExperimentConfig(
-        model=ModelConfig(causal=True),
-        data=DataConfig(tokenizer="byte", tokenizer_path="", train_data=["unused.parquet"]),
-        train=TrainConfig(label_smoothing_epsilon=0.1),
+def test_causal_label_smoothing_accepts_the_configured_tokenizer_without_environment_contracts(tmp_path):
+    corpus = tmp_path / "train.parquet"
+    prepare_corpus(REPOSITORY_ROOT / "examples" / "tiny_corpus.txt", corpus, row_group_size=4)
+    config = apply_overrides(
+        load_config(REPOSITORY_ROOT / "recipes" / "preview" / "smoke_byte.json"),
+        [
+            "model.causal=true",
+            f"data.train_data={json.dumps([str(corpus)])}",
+            "train.label_smoothing_epsilon=0.1",
+            "train.num_steps=1",
+            f"train.run_dir={tmp_path / 'run'}",
+        ],
     )
-    validate_config(config)
+    metrics = train(config)
 
-    metrics = _label_smoothing_ar_metrics(config, ByteTokenizer())
-
-    assert metrics == {
+    assert metrics["run_mode"] == "train"
+    assert {key: value for key, value in metrics.items() if key.startswith("ar_label_smoothing_")} == {
         "ar_label_smoothing_enabled": True,
         "ar_label_smoothing_epsilon": 0.1,
         "ar_label_smoothing_vocab_size": 260,

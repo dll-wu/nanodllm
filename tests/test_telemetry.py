@@ -77,7 +77,7 @@ def test_resolve_tensorboard_dir_preserves_absolute_path(tmp_path):
 
 
 def test_build_tensorboard_writer_records_resolved_config(tmp_path, monkeypatch):
-    import nanodllm.telemetry as telemetry
+    from nanodllm.runtime import telemetry
 
     _FakeSummaryWriter.instances.clear()
     monkeypatch.setattr(telemetry, "_load_summary_writer", lambda: _FakeSummaryWriter)
@@ -97,7 +97,7 @@ def test_build_tensorboard_writer_records_resolved_config(tmp_path, monkeypatch)
 
 
 def test_build_tensorboard_writer_skips_disabled_and_nonzero_rank(monkeypatch):
-    import nanodllm.telemetry as telemetry
+    from nanodllm.runtime import telemetry
 
     load_calls = []
     monkeypatch.setattr(
@@ -115,7 +115,7 @@ def test_build_tensorboard_writer_skips_disabled_and_nonzero_rank(monkeypatch):
 
 
 def test_build_tensorboard_writer_closes_if_config_record_fails(tmp_path, monkeypatch):
-    import nanodllm.telemetry as telemetry
+    from nanodllm.runtime import telemetry
 
     class _FailingSummaryWriter(_FakeSummaryWriter):
         def add_text(self, tag: str, text: str, step: int) -> None:

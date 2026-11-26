@@ -1,6 +1,6 @@
 # MDLM Bayes Analytic Audit
 
-`configs/mdlm_bayes_analytic_audit.json` is a self-contained CPU audit of the
+`recipes/preview/mdlm_bayes_analytic_audit.json` is a self-contained CPU audit of the
 synthetic EOS-canary data, absorbing-MDLM corruption path, and the Bayes
 decision under a finite empirical toy prior.
 
@@ -10,7 +10,7 @@ show that a trained model is calibrated.
 Run:
 
 ```bash
-nanodllm-pretrain --config configs/mdlm_bayes_analytic_audit.json
+nanodllm-pretrain --config recipes/preview/mdlm_bayes_analytic_audit.json
 ```
 
 ## Calculation

@@ -1,48 +1,42 @@
 # NanoDLLM
 
-NanoDLLM is a PyTorch research codebase for training and evaluating small masked diffusion language models. The paper compares training from scratch with initializing from an autoregressive (AR) parent. It follows both full-sequence diffusion and block diffusion from 20M to 477M parameters. Block models can generate beyond their training block length by appending blocks and caching completed prefix keys and values.
+NanoDLLM is a PyTorch codebase for experimenting with small diffusion language models. Train a masked diffusion model on whole sequences or successive blocks, start it from scratch or from an autoregressive (AR) checkpoint, and compare the resulting models on the same inputs. The block decoder reuses completed blocks' attention keys and values as the continuation grows.
 
-| What do you want to do? | Start here |
-| --- | --- |
-| Rebuild the figures and tables on a laptop | [Paper results](docs/paper-results.md) |
-| Train an AR parent, a diffusion model from scratch, or an AR-initialized diffusion model | [Training recipes](docs/paper-recipes.md) |
-| Prepare the corpus and identify the tokenizer | [Paper data](docs/paper-data.md) |
-| Compare published diffusion components | [Component experiments](docs/paper-components.md) |
-| Evaluate a checkpoint or compare two runs | [Corpus scoring](docs/paper-evaluation.md) and [tasks and generation](docs/paper-tasks-generation.md) |
-| Find checkpoint identities and export local weights | [Checkpoint inventory](docs/checkpoints.md) and [portable weights](docs/portable-weights.md) |
-| Understand release scope and validation | [Release notes](docs/release.md) |
+## Train and sample on a laptop
 
-## Reproduce the paper displays
+From a source checkout with Python 3.11 or newer and a suitable PyTorch installation:
 
-From a source checkout, with Python 3.11 or newer and NumPy installed, run:
-
-```bash
-python -m paper_results --check
-python -m paper_results --output paper-output
-```
-
-This recomputes the displays from the bundled numerical observations and checks them against the paper edition. It runs on CPU without training data or checkpoints. The output includes TeX and machine-readable statistics. The results guide identifies which summaries can be recomputed from document losses and which start from retained aggregates.
-
-## Train on CPU
-
-Install a PyTorch build appropriate for your platform and install the package. From the checkout:
-
-```bash
+```sh
 python -m pip install -e .
 python scripts/prepare_tiny_corpus.py
-nanodllm-paper-recipes launch tiny-ar --corpus data/tiny_corpus.parquet --run-dir runs/tiny-ar
+nanodllm-pretrain --config recipes/tiny-block.json
+nanodllm-generate --checkpoint runs/tiny-block/model_latest.pt --training-checkpoint \
+  --prompt 'The lamp' --capacity 24 --seed 7
 ```
 
-The example trains on the original text fixture using the built-in byte tokenizer. The paper profiles use a 32,768-token tokenizer and a held-out ClimbMix shard. The block series uses best-fit packing. The full-sequence scaling series preserves document tails. List the profiles and their parent dependencies before selecting a run:
+This trains a two-layer model for two CPU updates with 8-token blocks. The last command samples up to three blocks after your prompt and prints the text and forward-pass count. The tiny corpus makes this a check of the pipeline. Use the training-checkpoint flag only for a checkpoint you trust. [Editable config](recipes/tiny-block.json) · [Portable weights](docs/portable-weights.md)
 
-```bash
-nanodllm-paper-recipes list
+Score next-token predictions from that same checkpoint:
+
+```sh
+nanodllm-eval prepare block --parquet data/tiny_corpus.parquet \
+  --block-size 8 --count 4 --output runs/tiny-block/panel.pt
+nanodllm-eval score --panel runs/tiny-block/panel.pt \
+  --checkpoint runs/tiny-block/model_latest.pt --trusted-training-checkpoint \
+  --output runs/tiny-block/scores.json
 ```
 
-For a fully specified JSON config, use `nanodllm-paper-train --config FILE`. The earlier preview's `nanodllm-pretrain` and `pretrain.py` entry points retain their original trainer and config conventions. See [getting started](docs/getting-started.md) for that path.
+This example uses the training fixture for convenience. For an experiment, build the panel once from held-out documents and reuse it across checkpoints. [Evaluation guide](docs/evaluation.md)
 
-## Reading the comparisons
+## Run an experiment
 
-The paper reports separate full-sequence and block comparisons. In the block experiment, the selected recipe spends 10 tokens per counted parameter on the AR parent and 30 on diffusion continuation. Its scratch comparator spends all 40 on diffusion. The denominator includes the transformer matrices and output head and excludes input embeddings. Budgets count allocated tokens, including padding. A lower reconstruction bound, stronger next-token predictions, higher task accuracy and fluent sampled text measure different behaviors. The released panels preserve each metric, conditioning convention and token budget.
+The first matched comparison asks how to spend a fixed training budget. Train a four-layer block model from scratch for 40 tokens per counted parameter, or spend the first 10 on an AR parent and the remaining 30 on block diffusion. Both routes use the same trainer and evaluator. The recipe gives the settings, parent handoff and commands for both arms. [Training recipes](recipes/README.md) · [Published method replications](recipes/components/README.md)
 
-Code is licensed under the [MIT License](LICENSE). See [third-party notices](THIRD_PARTY_NOTICES.md), [software citation metadata](CITATION.cff), and the [documentation index](docs/README.md).
+| If you want to… | Start here |
+| --- | --- |
+| Change the mask, model, or decoder | [Core implementation map](docs/architecture/architecture.md) |
+| Train on your own corpus | [Getting started](docs/getting-started.md) |
+| Evaluate tasks, stopping, repetition, or decoding speed | [Tasks and generation](docs/generation-and-tasks.md) |
+| Rebuild the published figures and tables, or repeat an exact training run | [Paper companion](paper/README.md) |
+
+[MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md) · [Citation](CITATION.cff)

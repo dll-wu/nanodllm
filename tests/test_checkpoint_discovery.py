@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 import pytest
-from nanodllm.training_checkpoint_paths import _resolve_resume_path
+from nanodllm.runtime.training_checkpoint_paths import _resolve_resume_path
 
 
 def _write_checkpoint(path: Path, *, mtime_ns: int) -> Path:

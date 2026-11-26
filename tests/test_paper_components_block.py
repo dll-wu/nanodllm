@@ -2,19 +2,19 @@ import math
 
 import pytest
 import torch
-from nanodllm.paper_components_block import (
+from nanodllm.runtime.data import DLMDataBatch
+from nanodllm.runtime.model import DiffusionConfig, DiffusionTransformer
+from recipes.components.block import (
     backward_microbatch,
     build_block_view,
     curriculum_stages,
     resolve_block_size,
 )
-from nanodllm.paper_components_fastv2 import (
+from recipes.components.fastv2 import (
     align_mask_padding,
     build_fastv2_view,
     forward_block_logits,
 )
-from nanodllm.paper_runtime.data import DLMDataBatch
-from nanodllm.paper_runtime.model import DiffusionConfig, DiffusionTransformer
 
 
 @pytest.fixture(autouse=True)

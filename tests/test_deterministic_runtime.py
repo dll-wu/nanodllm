@@ -3,11 +3,8 @@ import os
 import pytest
 import torch
 from nanodllm.config import DataConfig, ExperimentConfig, RuntimeConfig, validate_config
-from nanodllm.training import (
-    _configure_numeric_runtime,
-    _numeric_runtime_telemetry,
-    run_config_summary,
-)
+from nanodllm.runtime.training_runtime import _configure_numeric_runtime, _numeric_runtime_telemetry
+from nanodllm.training import run_config_summary
 
 
 def _config(**runtime_overrides) -> ExperimentConfig:

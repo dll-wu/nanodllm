@@ -3,7 +3,7 @@ import json
 
 import torch
 import torch.nn as nn
-from nanodllm.training import _pre_update_parameter_state_artifact
+from nanodllm.runtime.training_artifacts import _pre_update_parameter_state_artifact
 
 
 class _TinyTiedModel(nn.Module):

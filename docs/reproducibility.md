@@ -5,7 +5,7 @@ replay still depends on hardware and software outside the checkpoint.
 
 ## Count parent and child training
 
-Use `python -m nanodllm.paper_compute RUN` for a scratch run. For a continuation, supply `--parent-run PARENT_RUN` and, if the child used a portable export, `--parent-checkpoint PARENT.weights.pt`. The tool verifies the parent identity against the child and combines the actual processed tokens and estimated training FLOPs. A parent shared across experiments counts once in each complete recipe comparison. Wall time is the recorded training time, excluding queue and evaluation. A resumed stage can retain only its final session time, so its total time is reported as unknown. A historical endpoint without a complete pair of native run records cannot supply a newly verified two-stage compute ledger.
+Use `python -m nanodllm.compute RUN` for a scratch run. For a continuation, supply `--parent-run PARENT_RUN` and, if the child used a portable export, `--parent-checkpoint PARENT.weights.pt`. The tool verifies the parent identity against the child and combines the actual processed tokens and estimated training FLOPs. A parent shared across experiments counts once in each complete recipe comparison. Wall time is the recorded training time, excluding queue and evaluation. A resumed stage can retain only its final session time, so its total time is reported as unknown. A historical endpoint without a complete pair of native run records cannot supply a newly verified two-stage compute ledger.
 
 ## Comparing proposed changes
 

@@ -13,7 +13,7 @@ from nanodllm.noise import (
 
 def test_full_support_training_time_sampling_rejects_only_exact_zero(monkeypatch):
     draws = iter([0.0, 0.25])
-    monkeypatch.setattr("nanodllm.noise.random.uniform", lambda _low, _high: next(draws))
+    monkeypatch.setattr("nanodllm.runtime.noise.random.uniform", lambda _low, _high: next(draws))
 
     assert sample_positive_uniform_scalar(0.0, 1.0) == pytest.approx(0.25)
     values = sample_positive_uniform_tensor((4096,), device="cpu", t_min=0.0, t_max=1.0)

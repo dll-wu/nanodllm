@@ -21,7 +21,7 @@ objective, configuration, or training loop:
 
 ```bash
 nanodllm-pretrain \
-  --config configs/smoke_byte.json \
+  --config recipes/tiny-block.json \
   --set train.num_steps=1 \
   --set train.run_dir=runs/contributor-smoke
 ```

@@ -6,16 +6,16 @@ from types import SimpleNamespace
 
 import pytest
 import torch
-from nanodllm.paper_components_foundation import (
+from nanodllm.runtime.data import DLMDataBatch
+from nanodllm.runtime.training_bd3lm import bd3lm_attention_mask
+from recipes.components.foundation import (
     backward_microbatch,
     foundation_loss,
     initialize_policy,
     prepare_update,
     subs_cross_entropy,
 )
-from nanodllm.paper_components_noise import loss_variance_score, mask_rates
-from nanodllm.paper_runtime.data import DLMDataBatch
-from nanodllm.paper_runtime.training_bd3lm import bd3lm_attention_mask
+from recipes.components.noise import loss_variance_score, mask_rates
 
 
 class TinyModel(torch.nn.Module):

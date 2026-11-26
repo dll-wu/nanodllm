@@ -3,12 +3,12 @@ from dataclasses import asdict, replace
 
 import pytest
 import torch
-from nanodllm.paper_compute import compute_ledger
-from nanodllm.paper_eval_checkpoint import tokenizer_identity
-from nanodllm.paper_runtime.config import ModelConfig
-from nanodllm.paper_runtime.data import ByteTokenizer
-from nanodllm.paper_runtime.model import DiffusionConfig, DiffusionTransformer
-from nanodllm.paper_weights import export_weights, file_sha256, load_weights, portable_parent
+from nanodllm.compute import compute_ledger
+from nanodllm.evaluation.checkpoint import tokenizer_identity
+from nanodllm.runtime.config import ModelConfig
+from nanodllm.runtime.data import ByteTokenizer
+from nanodllm.runtime.model import DiffusionConfig, DiffusionTransformer
+from nanodllm.weights import export_weights, file_sha256, load_weights, portable_parent
 
 
 def _parent(tmp_path):
@@ -105,10 +105,11 @@ def test_compute_resumes_and_verified_two_stage_parent(tmp_path):
 def test_completep_portable_parents_match_all_full_sequence_profiles(tmp_path):
     from types import SimpleNamespace
 
-    from nanodllm.paper_recipes import read_profiles, resolve
-    from nanodllm.paper_runtime.training_plan import _resolve_diffusion_config
+    from nanodllm.runtime.training_plan import _resolve_diffusion_config
+    from recipes.launch import read_profiles, resolve
 
-    profiles = read_profiles()
+    profiles = read_profiles(group="full-adamw")
+    assert any(profile.parent for profile in profiles.values())
     vocab = SimpleNamespace(get_vocab_size=lambda: 32768, get_mask_token_id=lambda: 32758)
     for name, profile in profiles.items():
         if profile.group != "full-adamw" or not profile.parent:

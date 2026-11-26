@@ -7,9 +7,9 @@ import subprocess
 import sys
 
 import pytest
-from paper_results.__main__ import verify
-from paper_results.formatting import bpb, bpb_delta, bpb_interval, one
-from paper_results.reproduce import ROOT, load
+from paper.companion.__main__ import verify
+from paper.companion.formatting import bpb, bpb_delta, bpb_interval, one
+from paper.companion.reproduce import ROOT, load
 
 
 @pytest.fixture(scope="module")
@@ -105,15 +105,19 @@ def test_scoring_denominators(rebuilt):
 
 def test_standalone_cli_and_input_drift(tmp_path):
     # Exercise the distribution boundary with only the companion on sys.path.
-    shutil.copytree(ROOT, tmp_path / "paper_results", ignore=shutil.ignore_patterns("__pycache__"))
+    package = tmp_path / "paper"
+    package.mkdir()
+    shutil.copy2(ROOT.parent / "__init__.py", package)
+    companion = package / "companion"
+    shutil.copytree(ROOT, companion, ignore=shutil.ignore_patterns("__pycache__"))
     env = {**os.environ, "PYTHONPATH": str(tmp_path), "PYTHONDONTWRITEBYTECODE": "1"}
-    cmd = [sys.executable, "-B", "-m", "paper_results"]
+    cmd = [sys.executable, "-B", "-m", "paper.companion"]
     output_dir = tmp_path / "out"
     subprocess.run([*cmd, "--output", str(output_dir)], cwd=tmp_path, env=env, check=True)
     assert len(list(output_dir.rglob("*.tex"))) == 67
     files = {p: p.read_bytes() for p in output_dir.rglob("*") if p.is_file()}
     subprocess.run([*cmd, "--output", str(output_dir)], cwd=tmp_path, env=env, check=True)
     assert all(p.read_bytes() == expected for p, expected in files.items())
-    (tmp_path / "paper_results/data/component-losses.json").write_text("{}")
+    (companion / "data/component-losses.json").write_text("{}")
     failed = subprocess.run([*cmd, "--check"], cwd=tmp_path, env=env, capture_output=True, text=True)
     assert failed.returncode != 0 and "pinned public snapshots" in failed.stderr

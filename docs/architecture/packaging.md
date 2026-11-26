@@ -1,6 +1,6 @@
 # Packaging
 
-The `nano-dllm` distribution installs the public training, scoring and checkpoint-export commands, plus the CPU-only `paper_results` module. Paper profiles and reference manifests are installed under `share/nano-dllm`. Numerical inputs and TeX templates travel inside `paper_results`. The source distribution also includes documentation, contributor materials, original tiny-text examples and tests.
+The `nano-dllm` distribution installs the public training, scoring and checkpoint-export commands, plus the CPU-only `paper.companion` module. The wheel places recipes, frozen profiles and reference manifests at the same relative paths as the checkout. Numerical inputs and TeX templates travel inside `paper.companion`. The source distribution also includes documentation, contributor materials, original tiny-text examples and tests.
 
 ## Install
 

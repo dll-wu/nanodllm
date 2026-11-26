@@ -8,13 +8,13 @@ from pathlib import Path, PurePosixPath
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_GROUPS = {
     "configs": ("*.json",),
+    "recipes": ("*.py", "*.json", "*.md"),
     "docs": ("*.md",),
     "examples": ("*.txt",),
     "nanodllm": ("*.py",),
     "scripts": ("*.py",),
     "tests": ("*.py",),
-    "paper_results": ("*.json", "*.py", "*.tex", "*.md"),
-    "evaluation": ("*.json", "*.md"),
+    "paper": ("*.json", "*.py", "*.tex", "*.md"),
 }
 TOP = {
     "AGENTS.md",
@@ -30,7 +30,7 @@ TOP = {
     "pretrain.py",
     ".github/workflows/quality.yml",
 }
-VENDOR_LICENSE = "nanodllm/paper_runtime/vendor/nanochat/LICENSE"
+VENDOR_LICENSE = "nanodllm/runtime/vendor/nanochat/LICENSE"
 FORBIDDEN = {
     ".git",
     ".venv",
@@ -69,16 +69,10 @@ def check(directory):
     required_wheel = (
         {"pretrain.py", VENDOR_LICENSE}
         | source_files("nanodllm", ("*.py",))
-        | source_files("paper_results", ("*.json", "*.py", "*.tex"))
+        | source_files("paper", ("*.json", "*.py", "*.tex"))
+        | source_files("recipes", ("*.json", "*.py"))
     )
     missing |= required_wheel - binaries
-    for path in (
-        source_files("configs/paper", ("*.json",))
-        | source_files("configs/components", ("*.json",))
-        | source_files("evaluation", ("*.json",))
-    ):
-        if not any(name.endswith(f".data/data/share/nano-dllm/{path}") for name in binaries):
-            missing.add(path)
     if missing:
         raise ValueError(f"distribution files missing: {sorted(missing)}")
     for name in source | binaries:

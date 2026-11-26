@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from paper_results.reproduce import ROOT, load
+from paper.companion.reproduce import ROOT, load
 
 
 def test_public_snapshot_boundary():

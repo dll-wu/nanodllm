@@ -2,7 +2,7 @@ import hashlib
 
 import pytest
 from nanodllm.config import DataConfig, EvalConfig, ExperimentConfig, TrainConfig, validate_config
-from nanodllm.training import _source_checkpoint_identity
+from nanodllm.runtime.training_artifacts import _source_checkpoint_identity
 
 
 def _eval_only_identity_config() -> ExperimentConfig:

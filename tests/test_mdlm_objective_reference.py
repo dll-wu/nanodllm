@@ -238,9 +238,9 @@ def test_evaluate_nelbo_matches_exhaustive_mask_expectation_on_fixed_midpoint_gr
         assert torch.equal(corruption_weight.bool(), exhaustive_active_masks)
         return z_t, exhaustive_times, corruption_weight, None, {"corruption_uniforms": exhaustive_uniforms}
 
-    monkeypatch.setattr("nanodllm.eval.make_dataloader", fake_loader)
+    monkeypatch.setattr("nanodllm.runtime.eval.make_dataloader", fake_loader)
     monkeypatch.setattr(
-        "nanodllm.eval.build_token_bytes",
+        "nanodllm.runtime.eval.build_token_bytes",
         lambda _tokenizer: torch.tensor([1, 1, 1, 0], dtype=torch.int32),
     )
 
@@ -341,8 +341,8 @@ def test_evaluate_nelbo_expands_per_sequence_time_and_reports_sequence_jackknife
     def model_logits_fn(_model, _z_t, _x_0, _attention_mask, **_kwargs):
         return logits
 
-    monkeypatch.setattr("nanodllm.eval.make_dataloader", fake_loader)
-    monkeypatch.setattr("nanodllm.eval.build_token_bytes", lambda _tokenizer: torch.ones(vocab_size))
+    monkeypatch.setattr("nanodllm.runtime.eval.make_dataloader", fake_loader)
+    monkeypatch.setattr("nanodllm.runtime.eval.build_token_bytes", lambda _tokenizer: torch.ones(vocab_size))
 
     nelbo, masked_ce, weight_mean, schedule_weighted, diagnostics = evaluate_nelbo(
         object(),
@@ -423,7 +423,8 @@ def test_run_eval_wires_shared_time_range_correction_and_bound_labels(
     )
     from nanodllm.data import ByteTokenizer, DLMDataBatch
     from nanodllm.noise import MDLMNoise
-    from nanodllm.training import _ordered_nelbo_digest_root, _run_eval
+    from nanodllm.runtime.training_artifacts import _ordered_nelbo_digest_root
+    from nanodllm.runtime.training_evaluation import _run_eval
 
     tokenizer = ByteTokenizer()
     batch = DLMDataBatch(
@@ -545,8 +546,8 @@ def test_run_eval_wires_shared_time_range_correction_and_bound_labels(
             gen_eval=False,
         ),
     )
-    monkeypatch.setattr("nanodllm.training.build_val_loader", fake_val_loader)
-    monkeypatch.setattr("nanodllm.training.evaluate_nelbo", fake_evaluate_nelbo)
+    monkeypatch.setattr("nanodllm.runtime.training_evaluation.build_val_loader", fake_val_loader)
+    monkeypatch.setattr("nanodllm.runtime.training_evaluation.evaluate_nelbo", fake_evaluate_nelbo)
 
     model = TinyModel().train()
     metrics = _run_eval(

@@ -1,21 +1,22 @@
 from types import SimpleNamespace
 
-import nanodllm.training as training
 import pytest
+from nanodllm.runtime import training_artifacts, training_loop, training_runtime
+from nanodllm.training import train
 
 
 def test_restore_gc_state_unfreezes_and_restores_enabled_state(monkeypatch):
     events = []
     monkeypatch.setattr(
-        training.gc,
+        training_runtime.gc,
         "get_freeze_count",
         lambda: events.append("get_freeze_count") or 1,
     )
-    monkeypatch.setattr(training.gc, "unfreeze", lambda: events.append("unfreeze"))
-    monkeypatch.setattr(training.gc, "enable", lambda: events.append("enable"))
-    monkeypatch.setattr(training.gc, "disable", lambda: events.append("disable"))
+    monkeypatch.setattr(training_runtime.gc, "unfreeze", lambda: events.append("unfreeze"))
+    monkeypatch.setattr(training_runtime.gc, "enable", lambda: events.append("enable"))
+    monkeypatch.setattr(training_runtime.gc, "disable", lambda: events.append("disable"))
 
-    training._restore_gc_state(was_enabled=True, unfreeze=True)
+    training_runtime._restore_gc_state(was_enabled=True, unfreeze=True)
 
     assert events == ["get_freeze_count", "unfreeze", "enable"]
 
@@ -23,15 +24,15 @@ def test_restore_gc_state_unfreezes_and_restores_enabled_state(monkeypatch):
 def test_restore_gc_state_preserves_disabled_and_previously_frozen_state(monkeypatch):
     events = []
     monkeypatch.setattr(
-        training.gc,
+        training_runtime.gc,
         "get_freeze_count",
         lambda: events.append("unexpected freeze-count query"),
     )
-    monkeypatch.setattr(training.gc, "unfreeze", lambda: events.append("unexpected unfreeze"))
-    monkeypatch.setattr(training.gc, "enable", lambda: events.append("unexpected enable"))
-    monkeypatch.setattr(training.gc, "disable", lambda: events.append("disable"))
+    monkeypatch.setattr(training_runtime.gc, "unfreeze", lambda: events.append("unexpected unfreeze"))
+    monkeypatch.setattr(training_runtime.gc, "enable", lambda: events.append("unexpected enable"))
+    monkeypatch.setattr(training_runtime.gc, "disable", lambda: events.append("disable"))
 
-    training._restore_gc_state(was_enabled=False, unfreeze=False)
+    training_runtime._restore_gc_state(was_enabled=False, unfreeze=False)
 
     assert events == ["disable"]
 
@@ -46,15 +47,15 @@ def test_train_unwinds_impl_resources_before_distributed_cleanup(monkeypatch):
         resources.callback(events.append, "impl_resource")
         raise RuntimeError("training failed")
 
-    monkeypatch.setattr(training, "_train_impl", fake_train_impl)
+    monkeypatch.setattr(training_loop, "_train_impl", fake_train_impl)
     monkeypatch.setattr(
-        training,
+        training_loop,
         "_destroy_process_group_if_initialized",
         lambda: events.append("process_group"),
     )
 
     with pytest.raises(RuntimeError, match="training failed"):
-        training.train(config)
+        train(config)
 
     assert events == ["train_impl", "impl_resource", "process_group"]
 
@@ -62,20 +63,20 @@ def test_train_unwinds_impl_resources_before_distributed_cleanup(monkeypatch):
 def test_train_preserves_process_group_owned_by_caller(monkeypatch):
     events = []
 
-    monkeypatch.setattr(training.dist, "is_available", lambda: True)
-    monkeypatch.setattr(training.dist, "is_initialized", lambda: True)
+    monkeypatch.setattr(training_loop.dist, "is_available", lambda: True)
+    monkeypatch.setattr(training_loop.dist, "is_initialized", lambda: True)
     monkeypatch.setattr(
-        training,
+        training_loop,
         "_train_impl",
         lambda _config, _resources: events.append("train_impl"),
     )
     monkeypatch.setattr(
-        training,
+        training_loop,
         "_destroy_process_group_if_initialized",
         lambda: events.append("process_group"),
     )
 
-    training.train(object())
+    train(object())
 
     assert events == ["train_impl"]
 
@@ -92,12 +93,12 @@ def _publish_final_outputs(tmp_path, monkeypatch, *, save_checkpoint):
     resume_contract = {"version": 1}
 
     monkeypatch.setattr(
-        training,
+        training_artifacts,
         "_write_tensorboard_scalars",
         lambda *args: events.append(("tensorboard", args)),
     )
     monkeypatch.setattr(
-        training,
+        training_artifacts,
         "flush_tensorboard_writer",
         lambda *args: events.append(("flush", args)),
     )
@@ -106,21 +107,21 @@ def _publish_final_outputs(tmp_path, monkeypatch, *, save_checkpoint):
         events.append(("save", args, kwargs))
         return save_checkpoint(*args, **kwargs)
 
-    monkeypatch.setattr(training, "save_checkpoint", record_save)
+    monkeypatch.setattr(training_artifacts, "save_checkpoint", record_save)
     monkeypatch.setattr(
-        training,
+        training_artifacts,
         "alias_checkpoint",
         lambda *args: events.append(("alias", args)),
     )
     monkeypatch.setattr(
-        training,
+        training_artifacts,
         "write_json_atomic",
         lambda *args: events.append(("metrics", args)),
     )
-    monkeypatch.setattr(training, "print0", lambda *_args: None)
+    monkeypatch.setattr(training_artifacts, "print0", lambda *_args: None)
 
     def publish():
-        return training._publish_final_outputs(
+        return training_artifacts._publish_final_outputs(
             config,
             rank=0,
             metrics=metrics,

@@ -14,7 +14,7 @@ from nanodllm.data_identity import (
     build_dataset_inventory,
     build_tokenizer_inventory,
 )
-from nanodllm.training import _prepare_data_identity
+from nanodllm.runtime.training_data_identity import _prepare_data_identity
 from tokenizers import Tokenizer, models, pre_tokenizers
 
 

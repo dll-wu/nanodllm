@@ -1,13 +1,15 @@
 import json
-from dataclasses import fields
 from pathlib import Path
 
 import pyarrow.parquet as pq
-from nanodllm.config import DataConfig, EvalConfig, TrainConfig, load_config
+import pytest
+from nanodllm.cli import main
+from nanodllm.config import DataConfig, EvalConfig, apply_overrides, load_config
+from nanodllm.training import train
 from scripts.prepare_tiny_corpus import prepare_corpus
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-CONFIG_DIR = REPOSITORY_ROOT / "configs"
+CONFIG_DIR = REPOSITORY_ROOT / "recipes" / "preview"
 QUALITY_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "quality.yml"
 REMOVED_TRAINING_DIAGNOSTIC_FIELDS = {
     "real_packing_audit_only",
@@ -40,6 +42,7 @@ def test_quality_workflow_uses_import_safe_tests_and_installs_wheel_dependencies
     workflow = QUALITY_WORKFLOW.read_text(encoding="utf-8")
 
     assert "run: python -m pytest -q" in workflow
+    assert "--config recipes/tiny-block.json" in workflow
     assert "python -m pip install dist/*.whl" in workflow
     assert "pip install --no-deps" not in workflow
     assert workflow.count("uses: actions/checkout@v7.0.1") == 2
@@ -113,7 +116,7 @@ def test_d20_recipe_preserves_the_public_scale_up_shape():
     assert config.model.rope_base == 100000.0
 
 
-def test_bayes_audit_is_self_contained_and_cpu_only():
+def test_bayes_audit_is_self_contained_and_cpu_only(tmp_path):
     config = load_config(CONFIG_DIR / "mdlm_bayes_analytic_audit.json")
 
     assert config.recipe.name == "mdlm-bayes-analytic-audit"
@@ -124,13 +127,44 @@ def test_bayes_audit_is_self_contained_and_cpu_only():
     assert config.train.strict_mdlm_all_token_diagnostic_telemetry is True
     assert config.train.strict_mdlm_all_token_diagnostic_t_values == [0.55, 0.95]
 
+    main(["--config", str(CONFIG_DIR / "mdlm_bayes_analytic_audit.json"), "--run-dir", str(tmp_path)])
+    metrics = json.loads((tmp_path / "metrics.json").read_text(encoding="utf-8"))
+    assert metrics["strict_mdlm_all_token_bayes_analytic_status"] == "ok"
+    assert metrics["strict_mdlm_all_token_bayes_analytic_error"] == ""
+    assert metrics["total_tokens"] == 0
+    assert (tmp_path / metrics["strict_mdlm_all_token_bayes_audit_artifact"]).is_file()
 
-def test_removed_training_diagnostics_are_absent_from_schema_and_recipe():
-    schema_fields = {field.name for field in fields(TrainConfig)}
+
+def test_removed_training_diagnostics_are_absent_from_preview_recipe():
     recipe = json.loads((CONFIG_DIR / "mdlm_bayes_analytic_audit.json").read_text(encoding="utf-8"))
 
-    assert REMOVED_TRAINING_DIAGNOSTIC_FIELDS.isdisjoint(schema_fields)
     assert REMOVED_TRAINING_DIAGNOSTIC_FIELDS.isdisjoint(recipe["train"])
+
+
+_EOS_CANARY_DATA = ["data.train_data=[]", "data.identity_mode=off", "data.synthetic_dataset=eos_overfit_canary"]
+_FHS_TRACE = ["eval.sampler=fhs", "eval.sample_trace=true"]
+
+
+@pytest.mark.parametrize(
+    ("flag", "overrides"),
+    [
+        ("real_packing_audit_only", []),
+        ("strict_mdlm_corruption_audit_only", []),
+        ("strict_mdlm_target_ce_audit_only", []),
+        ("strict_mdlm_right_context_canary_only", []),
+        ("strict_mdlm_real_collator_micro_overfit_canary_only", []),
+        ("strict_mdlm_eos_overfit_canary_only", _EOS_CANARY_DATA),
+        ("strict_mdlm_learned_eos_sampler_canary_only", [*_EOS_CANARY_DATA, *_FHS_TRACE]),
+        ("strict_mdlm_sampler_eos_reachability_canary_only", ["data.train_data=[]", *_FHS_TRACE]),
+    ],
+)
+def test_selecting_an_unavailable_standalone_diagnostic_fails_explicitly(tmp_path, flag, overrides):
+    config = apply_overrides(
+        load_config(CONFIG_DIR / "smoke_byte.json"),
+        [f"train.run_dir={tmp_path}", "noise.complement_masking=false", f"train.{flag}=true", *overrides],
+    )
+    with pytest.raises(ValueError, match="standalone diagnostic is unavailable"):
+        train(config)
 
 
 def test_tiny_corpus_preparation_is_deterministic_and_matches_smoke_recipe(tmp_path):

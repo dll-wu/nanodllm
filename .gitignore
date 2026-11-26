@@ -46,3 +46,4 @@ events.out.tfevents.*
 
 /paper-output/
 /resolved-paper-configs/
+/resolved-configs/

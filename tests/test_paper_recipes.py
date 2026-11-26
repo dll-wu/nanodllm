@@ -1,15 +1,16 @@
+import json
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
 import torch
-from nanodllm import paper_recipes as recipes
-from nanodllm.paper_recipes_data import VALIDATION_SHARD, file_sha256, verify_corpus
-from nanodllm.paper_runtime.config import load_config
-from nanodllm.paper_runtime.model import DiffusionTransformer
-from nanodllm.paper_runtime.parameterization import bind_parameterization_contract, resolve_parameterization_contract
-from nanodllm.paper_runtime.training_plan import _resolve_diffusion_config
+from nanodllm.runtime.config import load_config
+from nanodllm.runtime.model import DiffusionTransformer
+from nanodllm.runtime.parameterization import bind_parameterization_contract, resolve_parameterization_contract
+from nanodllm.runtime.training_plan import _resolve_diffusion_config
+from recipes import launch as recipes
+from recipes.data import VALIDATION_SHARD, file_sha256, verify_corpus
 
 
 class PaperVocabulary:
@@ -30,9 +31,10 @@ def test_catalog_model_contracts_and_lineage(tmp_path):
         "full-bracket": 22,
         "block-bracket": 11,
         "tiny": 3,
+        "d4-matched": 3,
     }
     for p in profiles.values():
-        if p.group == "tiny":
+        if not p.frozen:
             continue
         cfg = recipes.resolve(
             profiles,
@@ -122,3 +124,72 @@ def test_corpus_inventory_rejects_subset(tmp_path):
     (tmp_path / VALIDATION_SHARD).touch()
     with pytest.raises(ValueError, match="shard names and byte sizes"):
         verify_corpus(tmp_path)
+
+
+def test_editable_d4_stages_match_reference_settings():
+    profiles = recipes.read_profiles()
+    for name, stage in (("d4-ar10", "parent"), ("d4-scratch40", "scratch"), ("d4-block30", "convert")):
+        editable = profiles[name]
+        frozen = profiles[f"block-d4-{stage}-s48"]
+        assert editable.world_size == frozen.world_size == 1
+        assert editable.checkpoint_sha256 is None
+        assert editable.validation_shard == frozen.validation_shard
+        for section, fields in frozen.settings.items():
+            if section == "recipe":
+                continue
+            expected = fields.copy()
+            if section == "parameterization":
+                expected.pop("contract_sha256")
+            assert editable.settings[section] == expected
+    parent, scratch, child = (profiles[name] for name in ("d4-ar10", "d4-scratch40", "d4-block30"))
+    assert child.parent == parent.name
+    assert scratch.parent is None and parent.parent is None
+    assert scratch.settings["train"]["target_tokens"] == (
+        parent.settings["train"]["target_tokens"] + child.settings["train"]["target_tokens"]
+    )
+
+
+def test_reusable_and_custom_cli_without_paper_profiles(tmp_path, monkeypatch, capsys):
+    # A present but unreadable catalog also catches accidental eager loading.
+    monkeypatch.setattr(recipes, "PAPER_PROFILES", tmp_path / "absent")
+    recipes.main(["list"])
+    output = capsys.readouterr().out
+    assert "d4-block30" in output and "tiny-ar" in output and "full-d8-scratch" not in output
+    recipes.PAPER_PROFILES.mkdir()
+    (recipes.PAPER_PROFILES / "block-muon.json").write_text("invalid JSON")
+    custom = json.loads((recipes.RECIPE_DIR / "profiles/tiny.json").read_text())
+    custom["profiles"]["local-ar"] = custom["profiles"].pop("tiny-ar")
+    custom["profiles"]["tiny-convert"]["parent"] = "local-ar"
+    custom["profiles"]["local-ar"]["overrides"]["train"] = {"num_steps": 7}
+    catalog = tmp_path / "custom.json"
+    catalog.write_text(json.dumps(custom))
+    args = [
+        "--corpus",
+        str(tmp_path / "local.parquet"),
+        "--run-dir",
+        str(tmp_path / "run"),
+        "--output-dir",
+        str(tmp_path),
+    ]
+    for name, extra, expected_steps in [
+        ("tiny-ar", [], 2),
+        ("d4-scratch40", ["--tokenizer", str(tmp_path / "tokenizer")], 7040),
+        (
+            "d4-block30",
+            [
+                "--tokenizer",
+                str(tmp_path / "tokenizer"),
+                "--parent",
+                "ar.weights.pt",
+                "--parent-sha256",
+                "a" * 64,
+                "--parent-bytes",
+                "123",
+            ],
+            5280,
+        ),
+        ("local-ar", ["--catalog", str(catalog)], 7),
+    ]:
+        recipes.main(["materialize", name, *args, *extra])
+        receipt = json.loads(capsys.readouterr().out)
+        assert load_config(receipt["config"]).train.num_steps == expected_steps
