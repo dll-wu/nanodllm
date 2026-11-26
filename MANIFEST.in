@@ -8,6 +8,7 @@ include README.md
 include SECURITY.md
 include THIRD_PARTY_NOTICES.md
 include pyproject.toml
+include raften.toml
 include pretrain.py
 
 include configs/*.json

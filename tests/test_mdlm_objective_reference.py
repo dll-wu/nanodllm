@@ -238,9 +238,9 @@ def test_evaluate_nelbo_matches_exhaustive_mask_expectation_on_fixed_midpoint_gr
         assert torch.equal(corruption_weight.bool(), exhaustive_active_masks)
         return z_t, exhaustive_times, corruption_weight, None, {"corruption_uniforms": exhaustive_uniforms}
 
-    monkeypatch.setattr("nanodllm.runtime.eval.make_dataloader", fake_loader)
+    monkeypatch.setattr("nanodllm.runtime.data.make_dataloader", fake_loader)
     monkeypatch.setattr(
-        "nanodllm.runtime.eval.build_token_bytes",
+        "nanodllm.runtime.data.build_token_bytes",
         lambda _tokenizer: torch.tensor([1, 1, 1, 0], dtype=torch.int32),
     )
 
@@ -341,8 +341,8 @@ def test_evaluate_nelbo_expands_per_sequence_time_and_reports_sequence_jackknife
     def model_logits_fn(_model, _z_t, _x_0, _attention_mask, **_kwargs):
         return logits
 
-    monkeypatch.setattr("nanodllm.runtime.eval.make_dataloader", fake_loader)
-    monkeypatch.setattr("nanodllm.runtime.eval.build_token_bytes", lambda _tokenizer: torch.ones(vocab_size))
+    monkeypatch.setattr("nanodllm.runtime.data.make_dataloader", fake_loader)
+    monkeypatch.setattr("nanodllm.runtime.data.build_token_bytes", lambda _tokenizer: torch.ones(vocab_size))
 
     nelbo, masked_ce, weight_mean, schedule_weighted, diagnostics = evaluate_nelbo(
         object(),

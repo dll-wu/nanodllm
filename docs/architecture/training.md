@@ -1,9 +1,8 @@
 # Training
 
-The public `nanodllm.training.train` calls the loop in `nanodllm.runtime.training_loop` after config resolution. It
-lazily calls `nanodllm.training_diagnostics.run_configured_diagnostic` after
-tokenizer construction only when the analytic Bayes audit is enabled.
-`nanodllm.telemetry` owns structured-file and TensorBoard writer helpers.
+To follow an optimizer update, start at [`_run_training_steps`](../../nanodllm/runtime/training_step.py). Each microbatch contributes gradients through the [causal](../../nanodllm/runtime/training_causal_microbatch.py), [block](../../nanodllm/runtime/training_block_conversion_step.py), or [diffusion](../../nanodllm/runtime/training_diffusion_microbatch.py) objective. After accumulation, the trainer reduces the counters across ranks and [applies the optimizer update](../../nanodllm/runtime/training_step_update.py). Checkpointing captures the prefetched next batch so resumed runs consume the same examples.
+
+The public `nanodllm.training.train` enters through [session initialization](../../nanodllm/runtime/training_loop.py). A config that enables the analytic Bayes audit invokes it after tokenizer construction. `nanodllm.telemetry` supplies the structured-file and TensorBoard writers.
 
 ## Launch Modes
 

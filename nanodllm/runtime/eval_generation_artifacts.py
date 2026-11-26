@@ -8,6 +8,8 @@ from contextlib import ExitStack
 from types import TracebackType
 from typing import Any, TextIO
 
+import torch
+
 GENERATION_SAMPLE_SCHEMA = "nanodllm.generation_sample.v1"
 
 
@@ -119,3 +121,43 @@ class GenerationArtifacts:
             "gen_sample_records_written": int(sample_count),
             "gen_samples_path": self.samples_path,
         }
+
+
+def _attention_row_ids(ids: torch.Tensor, attention_mask: torch.Tensor) -> list[int]:
+    row = ids.detach().cpu().tolist()
+    keep = attention_mask.detach().cpu().tolist()
+    return [int(token_id) for token_id, is_valid in zip(row, keep, strict=True) if bool(is_valid)]
+
+
+def _decode_attention_row(tokenizer, ids: torch.Tensor, attention_mask: torch.Tensor, limit: int = 500) -> str:
+    return tokenizer.decode(_attention_row_ids(ids, attention_mask))[:limit]
+
+
+def _decode_masked_attention_row(
+    tokenizer,
+    ids: torch.Tensor,
+    attention_mask: torch.Tensor,
+    mask_id: int,
+    eos_id: int | None,
+    limit: int = 500,
+) -> str:
+    pieces: list[str] = []
+    segment: list[int] = []
+
+    def flush_segment() -> None:
+        nonlocal segment
+        if segment:
+            pieces.append(tokenizer.decode(segment))
+            segment = []
+
+    for token_id in _attention_row_ids(ids, attention_mask):
+        if eos_id is not None and token_id == eos_id:
+            break
+        if token_id == mask_id:
+            flush_segment()
+            if not pieces or pieces[-1] != "<mask>":
+                pieces.append("<mask>")
+        else:
+            segment.append(token_id)
+    flush_segment()
+    return "".join(pieces)[:limit]

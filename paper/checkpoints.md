@@ -3,11 +3,11 @@
 The release provides training profiles and checkpoint identities. The inspected evidence contains completion receipts for 203 profile entries, representing 200 distinct final trainer files. Three profiles reuse an endpoint from another comparison. The archived identities below come from those receipts. The inspected release materials contain no original paper weight files or public download locations. A user can train the profiles locally and export the resulting models. [Training recipes](training.md)
 
 ```sh
-nanodllm-recipes list --checkpoints
+nanodllm-recipes list --include-paper --checkpoints
 nanodllm-recipes list --group block-muon --checkpoints
 ```
 
-The tab-separated inventory includes the exact SHA-256 and byte size of each original trainer file, its training profile, parent and rank count. The tiny examples have no historical checkpoint identity. An exported inference file has its own digest and records the digest of its source trainer file.
+The first command lists the editable recipes and all 203 paper profiles. Only the paper profiles have an archived checkpoint SHA-256 and byte size. The second command selects the block Muon group. Both commands show the parent and rank count. An exported inference file has its own digest and records the digest of its source trainer file.
 
 ## Models for the main comparisons
 

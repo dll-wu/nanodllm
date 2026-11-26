@@ -27,6 +27,7 @@ TOP = {
     "SECURITY.md",
     "THIRD_PARTY_NOTICES.md",
     "pyproject.toml",
+    "raften.toml",
     "pretrain.py",
     ".github/workflows/quality.yml",
 }

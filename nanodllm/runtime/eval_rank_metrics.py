@@ -4,6 +4,8 @@ from collections import Counter
 
 import torch
 
+from . import data
+
 
 def _single_token_text(tokenizer, token_id: int) -> str:
     if token_id < 0:
@@ -134,3 +136,50 @@ def _fill_conditional_rank_metrics(stats: dict, prefix: str, metrics_out: dict, 
     metrics_out[f"{prefix}predicted_max_token_fraction"] = most_common_count / count
     metrics_out[f"{prefix}entropy_mean"] = sum(stats["entropies"]) / count
     metrics_out[f"{prefix}margin_mean"] = sum(stats["margins"]) / count
+
+
+def _conditional_rank_frequency_deciles(
+    data_config,
+    tokenizer,
+    batch_size: int,
+    seq_len: int,
+    device,
+    batches: int,
+    token_bytes: torch.Tensor,
+    special_ids: set[int],
+) -> tuple[dict[int, int], int]:
+    train_loader = data.make_dataloader(data_config, tokenizer, batch_size, seq_len, "train", device=device)
+    freq_counts = Counter()
+    freq_batches = max(batches * 2, 10)
+    for _ in range(freq_batches):
+        batch = next(train_loader)
+        content = _content_position_mask(batch.x_0, batch.attention_mask, batch.loss_mask, token_bytes, special_ids)
+        if content.any():
+            ids = batch.x_0[content].detach().cpu().tolist()
+            freq_counts.update(ids)
+
+    vocab_size = tokenizer.get_vocab_size()
+    all_freqs = [(freq_counts.get(tid, 0), tid) for tid in range(vocab_size)]
+    all_freqs.sort(key=lambda x: x[0])
+    decile_size = vocab_size // 7
+    remainder = vocab_size % 7
+    token_to_decile: dict[int, int] = {}
+    idx = 0
+    for decile in range(1, 8):
+        size = decile_size + (1 if decile <= remainder else 0)
+        for _ in range(size):
+            token_to_decile[all_freqs[idx][1]] = decile
+            idx += 1
+    return token_to_decile, freq_batches
+
+
+def _selected_suffix_positions(content_positions: torch.Tensor, limit: int) -> list[int]:
+    if content_positions.numel() <= limit:
+        return [int(pos) for pos in content_positions.detach().cpu().tolist()]
+    sample_offsets = torch.linspace(
+        0,
+        content_positions.numel() - 1,
+        steps=limit,
+        device=content_positions.device,
+    ).round()
+    return [int(pos) for pos in content_positions[sample_offsets.to(torch.long)].detach().cpu().tolist()]

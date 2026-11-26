@@ -679,14 +679,14 @@ def test_asymmetric_then_globally_empty_update(tmp_path):
     worker.write_text(
         "import torch\n"
         "from nanodllm import cli\n"
-        "from nanodllm.runtime import training_step\n"
+        "from nanodllm.runtime import training_diffusion_batch\n"
         "calls = 0\n"
         "def forced(config, noise, clean, loss_mask, *, position_ids=None):\n"
         "    global calls\n"
         "    calls += 1\n"
         "    active = loss_mask.bool() if calls == 1 and torch.distributed.get_rank() == 1 else torch.zeros_like(loss_mask, dtype=torch.bool)\n"
         "    return clean.masked_fill(active, noise.mask_token_id), active.float(), 0.5, None\n"
-        "training_step._corrupt_training_batch = forced\n"
+        "training_diffusion_batch._corrupt_training_batch = forced\n"
         "cli.main()\n"
     )
     result = _launch(path, worker)

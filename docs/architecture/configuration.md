@@ -2,6 +2,8 @@
 
 The trainer reads a JSON config into [runtime dataclasses](../../nanodllm/runtime/config.py). For a single CPU experiment, start with [the block recipe](../../recipes/tiny-block.json). For matched multi-stage runs, the [recipe launcher](../../recipes/README.md) combines shared defaults and per-stage overrides into that same JSON format.
 
+[`validate_config`](../../nanodllm/runtime/config_validation.py) lists the checks in execution order. When changing an option, follow its call to the module that validates the corresponding feature. The [training checks](../../nanodllm/runtime/config_validation_training.py), for example, cover the budget, parent checkpoint, and loss settings.
+
 ```bash
 nanodllm-pretrain \
   --config recipes/tiny-block.json \
@@ -25,7 +27,6 @@ Read a config's `recipe.status` before launching it:
 - `locked` means the recipe has no unresolved fields.
 - `provisional` means its `provisional_fields` must be reviewed for the intended
   run.
-- historical recipes are intentionally excluded from this public snapshot.
 
 `recipe.locked_fields` and `recipe.provisional_fields` are validated dotted
 paths into the same resolved config.

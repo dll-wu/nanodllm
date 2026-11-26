@@ -16,6 +16,8 @@ ruff check .
 ruff format --check .
 ```
 
+With Raften installed, run `raften check` from the Git checkout to inspect file sizes and documentation links. The [policy](raften.toml) excludes frozen measurement snapshots and the corpus selection manifest from size checks. Training profiles remain subject to the ordinary limits.
+
 Run the bounded CPU training smoke after changing the model, data path,
 objective, configuration, or training loop:
 

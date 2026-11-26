@@ -2,7 +2,7 @@
 
 NanoDLLM is a PyTorch codebase for experimenting with small diffusion language models. Train a masked diffusion model on whole sequences or successive blocks, start it from scratch or from an autoregressive (AR) checkpoint, and compare the resulting models on the same inputs. The block decoder reuses completed blocks' attention keys and values as the continuation grows.
 
-## Train and sample on a laptop
+## Train and sample without a GPU
 
 From a source checkout with Python 3.11 or newer and a suitable PyTorch installation:
 

@@ -4,6 +4,8 @@ Evaluation is controlled by the `eval` section and scheduled by
 `train.eval_every`. Keep endpoint budgets larger than periodic canaries and
 record the exact plan with every comparison.
 
+The [runtime evaluator](../../nanodllm/runtime/eval.py) exposes the scoring functions. To inspect a measurement, start with [per-sequence NELBO](../../nanodllm/runtime/eval_nelbo.py), [fixed-noise reconstruction](../../nanodllm/runtime/eval_reconstruction.py), [generated continuations](../../nanodllm/runtime/eval_conditional_generation.py), or [gold suffix ranks](../../nanodllm/runtime/eval_rank_suffix.py).
+
 ## MDLM Reference Objective
 
 For absorbing MDLM, the evaluator samples one corruption time per validation
